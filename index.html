@@ -1,0 +1,2825 @@
+<!doctype html>
+<html lang="en">
+<head>
+ <meta charset="utf-8" />
+ <meta name="viewport" content="width=device-width, initial-scale=1" />
+ <title>Bridge Pricing V2.6</title>
+ <style>
+  :root {
+   --bg: #FAFAFB;
+   --surface: #FEFEFE;
+   --surface-alt: #E7E7E9;
+   --soft: #FAFAFB;
+   --border: #CBCACE;
+   --border-strong: #252428;
+   --text: #252428;
+   --muted: #6B6A71;
+   --danger: #D92D20;
+   --talent: #FFC833;
+   --music: #2F43DE;
+   --supervisor: #FF3364;
+   --shadow: none;
+   --shadow-hover: 0 4px 0 #252428;
+   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); }
+  .page-shell { min-height: 100vh; padding: 32px; }
+
+  .pricing-hero { max-width: 1180px; margin: 0 auto 34px; padding-top: 36px; text-align: center; }
+  .pricing-hero h2 { margin: 0; font-size: clamp(42px, 6vw, 84px); line-height: .96; letter-spacing: -.055em; font-weight: 780; }
+
+  .pricing-section { max-width: 1180px; margin: 0 auto 96px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(340px, 400px); gap: 28px; align-items: start; }
+  .pricing-infos { min-width: 0; }
+  .pricing-step { display:flex; flex-direction:column; gap:6px; margin:0 0 20px; }
+  .pricing-step-label { color: var(--muted); font-weight:800; font-size:12px; text-transform:uppercase; letter-spacing:.14em; opacity:.82; }
+  .pricing-step-title { color: var(--text); font-size:28px; line-height:1; font-weight:800; letter-spacing:-.05em; }
+  .pricing-step-description { color: var(--muted); font-size:14px; line-height:1.45; max-width:520px; }
+  #plans, #plan-tracks, #plan-tracks-on-hub { display: grid; gap: 12px; }
+  .mt-16 { margin-top: 10px; } .mt-64 { margin-top: 64px; } .mb-32 { margin-bottom: 32px; } .hidden { display: none !important; }
+
+  .pricing-plan { --plan-color: #252428; --plan-rgb: 37,36,40; position: relative; display: flex; justify-content: space-between; gap: 16px; padding: 14px 18px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); cursor: pointer; transition: border-color .15s ease, background .15s ease, transform .15s ease, box-shadow .15s ease; overflow: visible; }
+  .pricing-plan:hover { transform: translateY(-1px); border-color: var(--border-strong); box-shadow: 0 3px 0 #252428; }
+  .ghost-option { opacity:.72; border-style:dashed; }
+  .ghost-option:hover { opacity:1; }
+  .pricing-plan.selected { border: 2px solid var(--border-strong); background: var(--surface); box-shadow: 4px 4px 0 #252428; }
+  .pricing-plan-name { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 14px; padding: 12px 18px; border-radius: 14px; font-weight: 800; font-size: 16px; letter-spacing: .035em; text-transform: uppercase; color: var(--plan-badge-text, white); background: var(--plan-color); white-space: nowrap; }
+  .pricing-plan-name span { color: inherit !important; }
+  .pricing-plan-diamond { width: 18px; height: 18px; color: currentColor; flex: 0 0 auto; }
+  .pricing-plan-title { font-size: 20px; font-weight: 800; line-height: 1.02; letter-spacing: -.045em; max-width: 520px; }
+  .pricing-plan-description { margin-top: 8px; color: var(--muted); font-size: 13px; line-height: 1.45; max-width: 520px; }
+  .pricing-plan-specs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+  .pricing-plan-spec { display: inline-flex; align-items: center; gap: 7px; padding: 8px 11px; border-radius: 999px; background: var(--soft); border: 1px solid var(--border); color: var(--muted); font-size: 12px; font-weight: 700; line-height: 1; }
+  .pricing-plan-spec.disabled { color: #A19A90; background: rgba(23,22,21,.03); border-style: dashed; text-decoration: line-through; text-decoration-thickness: 1.5px; }
+  .pricing-plan-spec.disabled::after { display:none; }
+  .spec-icon { width: 13px; height: 13px; flex: 0 0 auto; fill: currentColor; }
+  .right { text-align: right; flex: 0 0 auto; display: flex; flex-direction: column; justify-content: center; align-items: flex-end; }
+  .pricing-plan-notice { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 8px; }
+  .pricing-plan-price { display:flex; flex-direction:column; align-items:flex-end; gap:4px; color: var(--muted); white-space: nowrap; }
+  .pricing-plan-price-main { display:flex; align-items:flex-end; gap:2px; color:var(--text); }
+  .pricing-plan-price-value { font-size:34px; line-height:.88; font-weight:820; letter-spacing:-.06em; }
+  .pricing-plan-price-suffix { font-size:13px; line-height:1.1; font-weight:700; color:var(--muted); margin-bottom:4px; }
+  .pricing-plan-price-yearly { font-size:11px; line-height:1.2; color:var(--muted); font-weight:500; }
+
+  .feature-title { display:flex; flex-direction:column; align-items:flex-start; gap:4px; margin:34px 0 8px; }
+  .feature-title-top { display:flex; align-items:center; gap:10px; color:var(--text); font-size:20px; font-weight:800; letter-spacing:-.03em; }
+  .feature-title-description { color:var(--muted); font-size:13px; line-height:1.4; max-width:520px; } font-weight: 780; letter-spacing: -.025em; }
+  .pricing-icon { width: 20px; height: 20px; fill: currentColor; }
+  .pricing-plan-text { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.45; }
+  .feature-hub-label { display: flex; align-items: center; gap: 10px; margin: 10px 0; color: var(--muted); font-size: 13px; line-height: 1.35; }
+  .hub-brand-icon { width: 22px; height: 22px; flex: 0 0 auto; border-radius: 8px; }
+
+  .selected-plan { --active-plan-color: #252428; --active-plan-rgb: 37,36,40; position: sticky; top: 24px; overflow: hidden; background: var(--surface); border: 1px solid var(--border); border-radius: 28px; padding: 0; box-shadow: none; }
+  .selected-plan-tile { position: relative; padding: 18px; background: linear-gradient(180deg, rgba(var(--active-plan-rgb), .10), #fff 62%); border-bottom: 1px solid rgba(var(--active-plan-rgb), .14); overflow: hidden; }
+  .selected-plan-tile::before { display:none; }
+  .selected-plan-title { position: relative; display:flex; align-items:center; justify-content:center; gap:10px; width:calc(100% + 44px); margin:-22px -22px 0; padding:18px 22px; background: var(--active-plan-color); color: var(--active-plan-text, white); font-size:16px; line-height:1; font-weight:800; letter-spacing:.035em; text-transform:uppercase; text-align:center; }
+  .selected-plan-title span { color: inherit !important; }
+  .selected-plan-subtitle { position: relative; margin:16px auto 0; max-width:320px; color: var(--text); font-size:18px; line-height:1.2; font-weight:780; letter-spacing:-.025em; text-align:center; }
+  .selected-plan-meta { position:relative; display:flex; justify-content:center; flex-wrap:wrap; gap:6px; margin-top:12px; text-align:center; }
+  .selected-plan-loved { background: transparent; color:#252428; padding:0; border-radius:0; font-size:12px; font-weight:800; letter-spacing:.05em; text-transform:uppercase; opacity:.72; }
+  
+
+  .selected-plan-loved { display:inline-flex; align-items:center; font-size:10px; font-weight:800; letter-spacing:.14em; opacity:.72; color:#252428; }
+  .pricing-plan-accent { display:flex; align-items:flex-end; justify-content:space-between; min-height:40px; margin:18px 22px 12px; gap:14px; text-align:left; }
+  .total-price { display:flex; flex-direction:column; align-items:flex-start; gap:4px; text-align:left; }
+  .total-price-main { display:flex; align-items:flex-end; gap:3px; }
+  .total-price-value { font-size:42px; line-height:.88; font-weight:820; letter-spacing:-.065em; }
+  .total-price-suffix { font-size:15px; line-height:1.1; color:var(--muted); font-weight:700; margin-bottom:5px; }
+  .total-price-yearly { font-size:11px; line-height:1.2; color:var(--muted); font-weight:500; }
+  .pricing-plan-sign-up { width: calc(100% - 44px); height: 50px; margin: 12px 22px 18px; border: 2px solid #252428; border-radius: 14px; background: var(--active-plan-color); color: white; font-weight: 800; font-size: 15px; letter-spacing: -.01em; cursor: pointer; transition: transform .15s ease, opacity .15s ease, box-shadow .15s ease; box-shadow: 0 4px 0 #252428; }
+  .pricing-plan-sign-up:hover { transform: translateY(-1px); box-shadow: 0 4px 0 #252428; }
+  .pricing-plan-sign-up.disabled { opacity: .55; cursor: not-allowed; box-shadow: none; }
+  .pricing-plan-title.medium { display:block; margin:0 22px 10px; font-size:14px; letter-spacing:0; }
+  .selected-plan-details { display: grid; gap: 2px; padding: 6px 22px 22px; background: transparent; border: 0; }
+
+  .recap-feature { display: grid; grid-template-columns: 22px 1fr; gap: 10px; padding: 8px 0; border-bottom: 1px solid rgba(23,22,21,.06); }
+  .recap-feature:last-child { border-bottom: 0; padding-bottom: 0; }
+  .recap-feature-title { margin: 0 0 2px; color: var(--text); font-size: 13px; line-height: 1.15; font-weight: 780; letter-spacing: -.02em; }
+  .recap-feature-list { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
+  .recap-feature-list li, .recap-feature-description { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.28; }
+  .recap-feature.disabled { opacity: .58; }
+  .recap-feature.disabled .recap-feature-title, .recap-feature.disabled .recap-feature-description { color: #9A9388; text-decoration: line-through; text-decoration-thickness: 1.5px; }
+  .recap-feature-upgrade, .recap-plus { display: inline-flex; align-items: center; width: fit-content; padding: 4px 8px; border-radius: 999px; background: rgba(var(--active-plan-rgb), .10); color: var(--active-plan-color); font-size: 11px; font-weight: 800; letter-spacing: -.01em; }
+  .recap-plus { display:block; margin: 2px 0 10px; padding: 0; background: transparent; color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+  .summary-icon { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 6px; background: rgba(var(--active-plan-rgb), .14); color: #252428; }
+  .summary-icon svg { width: 12px; height: 12px; fill: currentColor; }
+
+  .checkout-warning { display: none; align-items: flex-start; gap: 10px; margin: 0 22px 14px; padding: 12px 14px; border-radius: 16px; background: rgba(217,45,32,.08); border: 1px solid rgba(217,45,32,.18); color: var(--danger); font-size: 13px; line-height: 1.35; font-weight: 700; }
+  .checkout-warning.visible { display: flex; }
+  .checkout-warning svg { width: 16px; height: 16px; flex: 0 0 auto; fill: currentColor; margin-top: 1px; }
+  .switch-year { position: relative; display: inline-block; width: 44px; height: 26px; flex: 0 0 auto; }
+  .switch-year input { opacity: 0; width: 0; height: 0; }
+  .slider { position: absolute; cursor: pointer; inset: 0; background: var(--soft); transition: .2s; border-radius: 999px; }
+  .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background: white; transition: .2s; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,.16); }
+  input:checked + .slider { background: #22C55E; } input:checked + .slider:before { transform: translateX(18px); }
+
+
+  #plan-features { display: none !important; }
+
+  .pricing-plan { padding: 22px 24px; }
+  .pricing-plan-title { max-width: 460px; }
+  .pricing-plan-description { display: none; }
+  .pricing-plan-specs { display: none !important; }
+
+  .pricing-plan-lovedby {
+   margin-top: 12px;
+   color: var(--muted);
+   font-size: 11px;
+   line-height: 1.15;
+   font-weight: 800;
+   letter-spacing: .12em;
+   text-transform: uppercase;
+   opacity: .72;
+   max-width: 520px;
+  }
+
+  .pricing-plan.selected {
+   border: 2px solid var(--border-strong);
+   background: linear-gradient(180deg, rgba(var(--plan-rgb), .055), #fff 72%);
+   box-shadow: 4px 4px 0 #252428;
+   transform: translateY(-1px);
+  }
+
+  .checkout-value-props {
+   display: grid;
+   gap: 10px;
+   padding: 8px 22px 4px;
+  }
+
+  .checkout-value-label {
+   color: var(--muted);
+   font-size: 11px;
+   font-weight: 800;
+   letter-spacing: .12em;
+   text-transform: uppercase;
+  }
+
+  .capability-block {
+   display: grid;
+   gap: 3px;
+   padding: 12px 14px;
+   border: 1px solid rgba(37,36,40,.08);
+   border-radius: 14px;
+   background: rgba(37,36,40,.025);
+  }
+
+  .capability-title {
+   margin: 0;
+   color: var(--text);
+   font-size: 13px;
+   line-height: 1.15;
+   font-weight: 820;
+   letter-spacing: -.02em;
+  }
+
+  .capability-desc {
+   margin: 0;
+   color: var(--muted);
+   font-size: 12px;
+   line-height: 1.35;
+  }
+
+  .checkout-config {
+   display: grid;
+   gap: 12px;
+   padding: 14px 22px 8px;
+  }
+
+  .checkout-config-title {
+   color: var(--muted);
+   font-size: 11px;
+   font-weight: 800;
+   letter-spacing: .12em;
+   text-transform: uppercase;
+  }
+
+  .checkout-field {
+   display: grid;
+   gap: 7px;
+  }
+
+  .checkout-field label {
+   color: var(--text);
+   font-size: 13px;
+   line-height: 1;
+   font-weight: 780;
+   letter-spacing: -.01em;
+  }
+
+  .checkout-field select {
+   width: 100%;
+   height: 46px;
+   padding: 0 40px 0 14px;
+   border: 1px solid var(--border);
+   border-radius: 14px;
+   background: #fff;
+   color: var(--text);
+   font: inherit;
+   font-size: 13px;
+   font-weight: 720;
+   cursor: pointer;
+   appearance: none;
+   background-image: linear-gradient(45deg, transparent 50%, #6B6A71 50%), linear-gradient(135deg, #6B6A71 50%, transparent 50%);
+   background-position: calc(100% - 19px) 20px, calc(100% - 14px) 20px;
+   background-size: 5px 5px, 5px 5px;
+   background-repeat: no-repeat;
+  }
+
+  .checkout-field select:focus {
+   outline: none;
+   border-color: var(--border-strong);
+   box-shadow: 0 0 0 3px rgba(var(--active-plan-rgb), .12);
+  }
+
+
+  .pricing-plan-scope {
+   display: inline-flex;
+   width: fit-content;
+   margin-top: 12px;
+   padding: 7px 10px;
+   border-radius: 999px;
+   background: rgba(var(--plan-rgb), .08);
+   color: var(--text);
+   font-size: 12px;
+   line-height: 1;
+   font-weight: 760;
+   letter-spacing: -.01em;
+  }
+
+  .checkout-option-detail {
+   margin-top: -2px;
+   color: var(--muted);
+   font-size: 12px;
+   line-height: 1.35;
+   font-weight: 500;
+  }
+
+  .checkout-field.hidden { display: none; }
+  .selected-plan-details { display: none; }
+
+
+  .billing-toggle-row { display:flex; align-items:center; gap:8px; justify-content:flex-end; white-space:nowrap; }
+  .billing-toggle-row .pricing-plan-text { font-size:12px; font-weight:760; color:var(--muted); }
+  .selected-plan.talent-summary .plan-value-label,
+  .selected-plan.talent-summary .plan-value-icon { color:#252428; }
+  .selected-plan.talent-summary .plan-value-icon { background:rgba(37,36,40,.08); }
+
+  @media (max-width: 860px) {
+   .page-shell { padding: 18px; }
+   .pricing-section { grid-template-columns: 1fr; }
+   .pricing-infos { order: 1; }
+   .selected-plan { position: relative; top: 0; order: 2; }
+   .pricing-plan { flex-direction: column; }
+   .right { align-items: flex-start; text-align: left; }
+  }
+ 
+/* V11 fixes */
+.plan-badge-popular {
+ display:inline-flex;
+ align-items:center;
+ gap:6px;
+ margin-left:10px;
+ padding:6px 10px 6px 8px;
+ border-radius:999px;
+ background:#FFFFFF;
+ color:#252428;
+ border:1px solid rgba(37,36,40,.18);
+ box-shadow:0 2px 0 rgba(37,36,40,.08);
+ font-size:10px;
+ font-weight:900;
+ letter-spacing:.08em;
+ text-transform:uppercase;
+ vertical-align:middle;
+}
+.plan-badge-popular::before {
+ content:'★';
+ display:inline-flex;
+ align-items:center;
+ justify-content:center;
+ width:16px;
+ height:16px;
+ border-radius:999px;
+ background:#252428;
+ color:#FFFFFF;
+ font-size:9px;
+ line-height:1;
+ letter-spacing:0;
+}
+
+.pricing-plan-sign-up.disabled {
+ opacity:.48;
+ cursor:pointer;
+ box-shadow:none;
+ filter:grayscale(.1);
+}
+
+.selected-plan.shake {
+ animation: checkoutShake .36s ease both;
+}
+
+@keyframes checkoutShake {
+ 0%,100% { transform: translateX(0); }
+ 20% { transform: translateX(-7px); }
+ 40% { transform: translateX(7px); }
+ 60% { transform: translateX(-4px); }
+ 80% { transform: translateX(4px); }
+}
+
+.checkout-warning.visible {
+ display:flex !important;
+}
+
+@media (max-width: 860px) {
+ .selected-plan.shake {
+  animation: checkoutShakeMobile .4s ease both;
+ }
+
+ @keyframes checkoutShakeMobile {
+  0%,100% { transform: translateX(0); }
+  20% { transform: translateX(-9px); }
+  40% { transform: translateX(9px); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(5px); }
+ }
+}
+
+
+/* V17 — replace old VALUE INCLUDED/pills with icon value props */
+#plan-settings,
+#selected-plan-details,
+.selected-plan-details,
+.recap-feature,
+.recap-plus,
+.pricing-plan-title.medium,
+.capability-blocks,
+#capability-blocks,
+.value-prop-rows,
+#value-prop-rows {
+ display:none !important;
+}
+
+.plan-value-props {
+ display:grid;
+ gap:0;
+ padding:8px 22px 16px;
+}
+
+.plan-value-prop {
+ display:grid;
+ grid-template-columns:30px minmax(0,1fr);
+ gap:11px;
+ padding:12px 0;
+ border-bottom:1px solid rgba(37,36,40,.065);
+}
+
+.plan-value-prop:last-child {
+ border-bottom:0;
+}
+
+.plan-value-icon {
+ display:inline-flex;
+ align-items:center;
+ justify-content:center;
+ width:28px;
+ height:28px;
+ border-radius:10px;
+ background:rgba(var(--active-plan-rgb), .12);
+ color:var(--active-plan-color);
+}
+
+.plan-value-icon svg {
+ width:15px;
+ height:15px;
+ fill:currentColor;
+}
+
+.plan-value-label {
+ margin:0 0 6px;
+ color:var(--active-plan-color);
+ font-size:11px;
+ line-height:1;
+ font-weight:900;
+ letter-spacing:.14em;
+ text-transform:uppercase;
+}
+
+.plan-value-lines {
+ display:grid;
+ gap:2px;
+ margin:0;
+ padding:0;
+ list-style:none;
+}
+
+.plan-value-lines li {
+ margin:0;
+ color:var(--muted);
+ font-size:11.5px;
+ line-height:1.32;
+ font-weight:500;
+}
+
+.checkout-config {
+ padding:16px 22px 8px !important;
+ border-top:1px solid rgba(37,36,40,.07);
+ margin-top:0;
+}
+
+@media (max-width:860px) {
+ .plan-value-props { padding:8px 18px 16px; }
+ .checkout-config { padding:16px 18px 8px !important; }
+}
+
+
+/* V18 — fully remove old Value included block */
+.checkout-value-props,
+.checkout-value-label,
+#checkout-capabilities {
+ display:none !important;
+}
+
+
+/* V19 — validated Bridge pricing content */
+.plan-picker-pills {
+ display:flex;
+ flex-wrap:wrap;
+ gap:7px;
+ margin-top:14px;
+ max-width:560px;
+}
+.plan-picker-pill {
+ display:inline-flex;
+ align-items:center;
+ gap:6px;
+ padding:7px 10px;
+ border-radius:999px;
+ background:rgba(var(--plan-rgb), .08);
+ border:1px solid rgba(var(--plan-rgb), .16);
+ color:var(--text);
+ font-size:11px;
+ line-height:1;
+ font-weight:820;
+ letter-spacing:-.01em;
+}
+.plan-value-lines li.disabled {
+ color:#A19A90;
+ text-decoration:line-through;
+ text-decoration-thickness:1.5px;
+}
+.plan-value-lines li.disabled::before {
+ content:'';
+}
+.plan-value-lines li strong {
+ color:var(--text);
+ font-weight:760;
+}
+
+.pricing-plan[data-plan-id="talentPro"] .pricing-plan-name,
+.selected-plan[data-active-plan="talentPro"] .selected-plan-title,
+.selected-plan[data-active-plan="talentPro"] .pricing-plan-sign-up {
+ color:#252428 !important;
+}
+
+
+/* V2.9 corrections */
+#plan-settings { display:block !important; }
+.selected-plan-title .plan-badge-popular { color:#252428 !important; }
+.selected-plan-title .plan-badge-popular::before { color:#FFFFFF !important; }
+.selected-plan.talent-summary .plan-value-label,
+.selected-plan.talent-summary .plan-value-icon,
+.selected-plan.talent-summary .plan-value-lines li { color:#252428 !important; }
+.selected-plan.talent-summary .plan-value-lines li.disabled { color:#7A7470 !important; }
+.selected-plan.talent-summary .plan-value-icon { background:rgba(37,36,40,.08) !important; }
+
+
+
+/* V2.10 — readability and compact checkout polish */
+/* Keep Most Popular readable inside the left plan picker badge, despite inherited white plan text. */
+.pricing-plan-name .plan-badge-popular,
+.pricing-plan-name .plan-badge-popular span,
+.pricing-plan[data-plan-id="musicPro"] .plan-badge-popular {
+ color:#252428 !important;
+ background:#FFFFFF !important;
+ border-color:rgba(37,36,40,.20) !important;
+}
+.pricing-plan-name .plan-badge-popular::before {
+ color:#FFFFFF !important;
+ background:#252428 !important;
+}
+
+/* Make the page denser so the plan picker and checkout usually fit without local scrolling. */
+.page-shell { padding:22px 28px; }
+.pricing-hero { margin-bottom:22px; padding-top:18px; }
+.pricing-hero h2 { font-size:clamp(36px,5.2vw,66px); }
+.pricing-hero p { margin-top:12px !important; font-size:16px !important; }
+.pricing-section { margin-bottom:48px; gap:22px; grid-template-columns:minmax(0,1fr) minmax(330px,380px); }
+.pricing-step { margin-bottom:14px; }
+.pricing-step-title { font-size:24px; }
+#plans { gap:10px; }
+.pricing-plan { padding:16px 18px; border-radius:13px; }
+.pricing-plan-name { margin-bottom:10px; padding:10px 14px; font-size:14px; border-radius:12px; }
+.pricing-plan-title { font-size:18px; }
+.pricing-plan-lovedby { margin-top:9px; font-size:10px; }
+.pricing-plan-scope { margin-top:9px; padding:6px 9px; font-size:11px; }
+.plan-picker-pills { margin-top:10px; gap:6px; }
+.plan-picker-pill { padding:6px 9px; font-size:10.5px; }
+
+.selected-plan { top:18px; border-radius:16px; overflow:visible; }
+.selected-plan-tile { padding:16px 18px; }
+.selected-plan-title { width:calc(100% + 36px); margin:-16px -18px 0; padding:14px 18px; font-size:14px; }
+.selected-plan-subtitle { margin-top:12px; font-size:16px; }
+.selected-plan-meta { margin-top:8px; }
+.pricing-plan-accent { margin:14px 18px 10px; min-height:34px; }
+.total-price-value { font-size:36px; }
+.total-price-yearly { font-size:10.5px; }
+.billing-toggle-row .pricing-plan-text { font-size:11px; }
+.switch-year { width:38px; height:23px; }
+.slider:before { height:17px; width:17px; }
+input:checked + .slider:before { transform:translateX(15px); }
+
+.plan-value-props { padding:4px 18px 10px; }
+.plan-value-prop { grid-template-columns:26px minmax(0,1fr); gap:9px; padding:8px 0; }
+.plan-value-icon { width:24px; height:24px; border-radius:8px; }
+.plan-value-icon svg { width:13px; height:13px; }
+.plan-value-label { margin-bottom:4px; font-size:10px; letter-spacing:.12em; }
+.plan-value-lines { gap:1px; }
+.plan-value-lines li { font-size:10.7px; line-height:1.24; }
+.checkout-config { padding:10px 18px 6px !important; }
+.checkout-config-title { font-size:10px; }
+.checkout-field { gap:5px; }
+.checkout-field label { font-size:12px; }
+.checkout-field select { height:40px; border-radius:12px; font-size:12px; }
+.checkout-option-detail { font-size:11px; }
+.checkout-warning { margin:0 18px 10px; padding:10px 12px; font-size:12px; border-radius:13px; }
+.pricing-plan-sign-up { width:calc(100% - 36px); height:46px; margin:10px 18px 14px; border-radius:13px; font-size:14px; }
+
+@media (max-width:860px) {
+ .page-shell { padding:16px; }
+ .pricing-section { grid-template-columns:1fr; }
+ .pricing-hero h2 { font-size:clamp(34px,10vw,54px); }
+ .selected-plan { top:0; }
+}
+
+
+@media (min-width: 861px) {
+ .selected-plan {
+  max-height: calc(100vh - 28px);
+  overflow:auto;
+ }
+
+ .selected-plan::-webkit-scrollbar {
+  width: 6px;
+ }
+
+ .selected-plan::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,.12);
+  border-radius: 999px;
+ }
+
+ .pricing-plan {
+  padding: 16px 18px !important;
+ }
+
+ .pricing-plan-title {
+  font-size: 18px !important;
+ }
+
+ .selected-plan-subtitle {
+  font-size: 16px !important;
+ }
+}
+
+
+/* V2.13 — compact recap micro-bullets + typography normalization */
+.plan-value-lines li {
+  position: relative;
+  padding-left: 10px;
+  font-weight: 500 !important;
+}
+
+.plan-value-lines li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: .58em;
+  width: 3px;
+  height: 3px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: .45;
+}
+
+#pricing-summary[style*="255,200,51"] .plan-value-label,
+#pricing-summary[style*="255,200,51"] .plan-value-lines li,
+#pricing-summary[style*="255,200,51"] .plan-value-icon {
+  color: #252428 !important;
+}
+
+#pricing-summary[style*="255,200,51"] .plan-value-lines li {
+  font-weight: 500 !important;
+}
+
+
+/* Step — persona picker + precise recap */
+.pricing-plan-subtitle-line {
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.35;
+  font-weight: 520;
+  max-width: 470px;
+}
+
+.pricing-plan-restriction {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 8px;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: rgba(37,36,40,.045);
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 820;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.plan-value-lines li.is-not-included {
+  text-decoration: line-through;
+  opacity: .48;
+}
+
+.hub-context {
+  display: grid;
+  gap: 2px;
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.35;
+  opacity: .76;
+}
+
+.plan-value-lines li:first-child {
+  color: var(--text);
+  font-weight: 760 !important;
+  font-size: 12px;
+}
+
+.plan-value-lines li:not(:first-child) {
+  color: var(--muted);
+  font-weight: 500 !important;
+  font-size: 11px;
+}
+
+.plan-value-label {
+  font-size: 10px !important;
+  letter-spacing: .15em !important;
+  opacity: .74;
+}
+
+.plan-value-prop {
+  padding: 8px 0 !important;
+  border-bottom: 1px solid rgba(37,36,40,.05) !important;
+}
+
+
+/* Step 2 — premium checkout recap hierarchy */
+.selected-plan {
+  border-radius: 30px !important;
+  border-color: rgba(37,36,40,.10) !important;
+  box-shadow: 0 18px 48px rgba(37,36,40,.06);
+}
+
+.selected-plan-tile {
+  border-radius: 30px 30px 22px 22px;
+  border-bottom: 1px solid rgba(37,36,40,.045) !important;
+  padding: 18px !important;
+}
+
+.plan-value-props {
+  gap: 0 !important;
+  padding: 6px 20px 14px !important;
+}
+
+.plan-value-prop {
+  grid-template-columns: 24px minmax(0,1fr) !important;
+  gap: 9px !important;
+  padding: 9px 0 !important;
+  border-bottom: 1px solid rgba(37,36,40,.04) !important;
+  animation: recapFadeSlide .16s ease both;
+}
+
+.plan-value-prop:last-child {
+  border-bottom: 0 !important;
+}
+
+.plan-value-icon {
+  width: 22px !important;
+  height: 22px !important;
+  border-radius: 8px !important;
+  background: rgba(var(--active-plan-rgb), .095) !important;
+}
+
+.plan-value-icon svg {
+  width: 12px !important;
+  height: 12px !important;
+}
+
+.plan-value-label {
+  margin-bottom: 5px !important;
+  color: var(--text) !important;
+  font-size: 9.5px !important;
+  line-height: 1 !important;
+  font-weight: 900 !important;
+  letter-spacing: .18em !important;
+  text-transform: uppercase !important;
+  opacity: .68 !important;
+}
+
+.plan-value-lines {
+  gap: 3px !important;
+}
+
+.plan-value-lines li {
+  position: relative;
+  padding-left: 9px !important;
+  color: var(--muted) !important;
+  font-size: 10.7px !important;
+  line-height: 1.32 !important;
+  font-weight: 460 !important;
+  letter-spacing: 0 !important;
+}
+
+.plan-value-lines li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: .62em;
+  width: 2.8px;
+  height: 2.8px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: .35;
+}
+
+.plan-value-lines li:first-child {
+  color: var(--text) !important;
+  font-size: 12.3px !important;
+  line-height: 1.22 !important;
+  font-weight: 780 !important;
+  letter-spacing: -.015em !important;
+}
+
+.plan-value-lines li:first-child::before {
+  opacity: 0;
+}
+
+.plan-value-lines li.is-not-included,
+.plan-value-lines li[style*="line-through"] {
+  color: var(--muted) !important;
+  opacity: .46 !important;
+  text-decoration-thickness: 1.3px !important;
+}
+
+.hub-context {
+  display: grid;
+  gap: 1px;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 9.8px;
+  line-height: 1.32;
+  opacity: .72;
+  font-weight: 450;
+}
+
+.checkout-config {
+  padding: 11px 20px 7px !important;
+  border-top: 1px solid rgba(37,36,40,.045) !important;
+}
+
+.checkout-config-title {
+  font-size: 9.5px !important;
+  letter-spacing: .18em !important;
+  opacity: .72;
+}
+
+.checkout-field label {
+  font-size: 12px !important;
+}
+
+.checkout-field select {
+  height: 42px !important;
+  font-size: 12px !important;
+  border-color: rgba(37,36,40,.12) !important;
+}
+
+.checkout-option-detail {
+  font-size: 10.5px !important;
+  font-weight: 450 !important;
+}
+
+.total-price-value.price-change {
+  animation: pricePulse .2s ease;
+}
+
+@keyframes recapFadeSlide {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pricePulse {
+  from { opacity: .55; transform: translateY(2px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+#pricing-summary[style*="255,200,51"] .plan-value-label,
+#pricing-summary[style*="255,200,51"] .plan-value-lines li,
+#pricing-summary[style*="255,200,51"] .plan-value-icon {
+  color: #252428 !important;
+}
+
+#pricing-summary[style*="255,200,51"] .plan-value-lines li:not(:first-child) {
+  font-weight: 460 !important;
+  opacity: .68;
+}
+
+@media (min-width: 861px) {
+  .selected-plan {
+    max-height: calc(100vh - 28px);
+    overflow: auto;
+  }
+  .selected-plan::-webkit-scrollbar { width: 6px; }
+  .selected-plan::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,.12);
+    border-radius: 999px;
+  }
+}
+
+
+/* Step 3 — premium micro-interactions */
+.plan-value-prop {
+  position: relative;
+  overflow: hidden;
+  transition: opacity .14s ease, transform .14s ease, background .14s ease;
+}
+
+.plan-value-prop.recap-change {
+  animation: recapPremiumChange .16s ease both;
+}
+
+.plan-value-prop.recap-change::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-120%);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.52), transparent);
+  animation: recapShimmer .16s ease both;
+  pointer-events: none;
+}
+
+@keyframes recapPremiumChange {
+  0% { opacity: .58; transform: translateY(4px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes recapShimmer {
+  0% { transform: translateX(-120%); opacity: 0; }
+  30% { opacity: .6; }
+  100% { transform: translateX(120%); opacity: 0; }
+}
+
+.total-price-value,
+.total-price-suffix,
+.total-price-yearly {
+  transition: opacity .14s ease, transform .14s ease;
+}
+
+.total-price-value.price-change,
+.total-price-suffix.price-change,
+.total-price-yearly.price-change {
+  animation: pricePremiumPulse .16s ease both;
+}
+
+@keyframes pricePremiumPulse {
+  0% { opacity: .48; transform: translateY(3px) scale(.992); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.checkout-field select {
+  transition: border-color .14s ease, box-shadow .14s ease, background-color .14s ease;
+}
+
+.checkout-field select:active {
+  transform: translateY(.5px);
+}
+
+
+/* Step 4 — visible premium micro-interactions */
+.plan-value-prop {
+  position: relative;
+  overflow: hidden;
+}
+
+.plan-value-prop.recap-change {
+  animation: recapPremiumChangeVisible .18s cubic-bezier(.2,.8,.2,1) both !important;
+}
+
+.plan-value-prop.recap-change::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-125%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255,255,255,.70) 45%,
+    rgba(255,255,255,.90) 50%,
+    rgba(255,255,255,.70) 55%,
+    transparent 100%
+  );
+  animation: recapShimmerVisible .22s ease both;
+  pointer-events: none;
+}
+
+@keyframes recapPremiumChangeVisible {
+  0% {
+    opacity: .62;
+    transform: translateY(8px);
+    background: rgba(var(--active-plan-rgb), .045);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    background: transparent;
+  }
+}
+
+@keyframes recapShimmerVisible {
+  0% { transform: translateX(-125%); opacity: 0; }
+  25% { opacity: .85; }
+  100% { transform: translateX(125%); opacity: 0; }
+}
+
+.total-price-value.price-change,
+.total-price-suffix.price-change,
+.total-price-yearly.price-change {
+  animation: pricePremiumPulseVisible .22s cubic-bezier(.2,.8,.2,1) both !important;
+}
+
+@keyframes pricePremiumPulseVisible {
+  0% {
+    opacity: .45;
+    transform: translateY(6px) scale(.975);
+    filter: blur(.2px);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(-1px) scale(1.012);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+.checkout-field select.changed {
+  animation: selectSoftPulse .22s ease both;
+}
+
+@keyframes selectSoftPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(var(--active-plan-rgb), .00);
+    background-color: #fff;
+  }
+  45% {
+    box-shadow: 0 0 0 4px rgba(var(--active-plan-rgb), .11);
+    background-color: rgba(var(--active-plan-rgb), .025);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(var(--active-plan-rgb), .00);
+    background-color: #fff;
+  }
+}
+
+
+/* Step 5 — simplified Cloud wording + emphasized premium features */
+.plan-value-lines li strong {
+  color: var(--text);
+  font-weight: 820;
+}
+
+.plan-value-lines li.is-not-included strong,
+.plan-value-lines li[style*="line-through"] strong {
+  color: inherit;
+  font-weight: inherit;
+}
+
+.hub-context {
+  display: grid !important;
+  gap: 1px !important;
+  margin-top: 4px !important;
+  color: var(--muted) !important;
+  font-size: 9.7px !important;
+  line-height: 1.32 !important;
+  opacity: .72 !important;
+  font-weight: 450 !important;
+}
+
+.hub-context span {
+  display: block;
+}
+
+.plan-value-lines li:first-child {
+  color: var(--muted) !important;
+  font-weight: 500 !important;
+  font-size: 10.9px !important;
+}
+
+.plan-value-lines li:nth-child(2) {
+  color: var(--text) !important;
+  font-size: 12.3px !important;
+  line-height: 1.22 !important;
+  font-weight: 780 !important;
+  letter-spacing: -.015em !important;
+}
+
+/* But keep the main first line strong for non-Cloud categories through strong tags / normal list hierarchy */
+.plan-value-prop:not(:has(.plan-value-label)) {}
+
+
+/* Step 6 — cleaner readability */
+.plan-value-label {
+  margin-bottom: 7px !important;
+  color: var(--text) !important;
+  font-size: 11px !important;
+  line-height: 1 !important;
+  font-weight: 800 !important;
+  letter-spacing: .04em !important;
+  text-transform: none !important;
+  opacity: 1 !important;
+}
+
+.plan-value-lines {
+  gap: 5px !important;
+}
+
+.plan-value-lines li {
+  position: relative;
+  padding-left: 10px !important;
+  color: var(--muted) !important;
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+  font-weight: 450 !important;
+}
+
+.plan-value-lines li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: .62em;
+  width: 3px;
+  height: 3px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: .35;
+}
+
+.plan-value-lines li:first-child {
+  color: var(--text) !important;
+  font-size: 13px !important;
+  line-height: 1.3 !important;
+  font-weight: 700 !important;
+}
+
+.plan-value-lines li:nth-child(2) {
+  color: var(--muted) !important;
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+  font-weight: 450 !important;
+}
+
+.plan-value-prop {
+  padding: 12px 0 !important;
+}
+
+.hub-context {
+  display: grid !important;
+  gap: 2px !important;
+  margin-top: 6px !important;
+  color: var(--muted) !important;
+  font-size: 10px !important;
+  line-height: 1.35 !important;
+  opacity: .82 !important;
+  font-weight: 500 !important;
+}
+
+.hub-context span {
+  display: block;
+}
+
+.plan-value-lines li strong {
+  font-weight: 750 !important;
+}
+
+
+/* Step 7 — simple consistent recap typography */
+.plan-value-label {
+  margin: 0 0 8px !important;
+  color: var(--text) !important;
+  font-size: 10.5px !important;
+  line-height: 1 !important;
+  font-weight: 850 !important;
+  letter-spacing: .14em !important;
+  text-transform: uppercase !important;
+  opacity: .92 !important;
+}
+
+.plan-value-lines {
+  display: grid !important;
+  gap: 5px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  list-style: none !important;
+}
+
+.plan-value-lines li,
+.plan-value-lines li:first-child,
+.plan-value-lines li:nth-child(2),
+.plan-value-lines li:not(:first-child),
+.plan-value-lines li.is-not-included,
+.plan-value-lines li[style*="line-through"] {
+  position: relative !important;
+  padding-left: 11px !important;
+  color: var(--muted) !important;
+  font-size: 12px !important;
+  line-height: 1.38 !important;
+  font-weight: 450 !important;
+  letter-spacing: 0 !important;
+  opacity: 1 !important;
+}
+
+.plan-value-lines li.is-not-included,
+.plan-value-lines li[style*="line-through"] {
+  opacity: .46 !important;
+  text-decoration: line-through !important;
+  text-decoration-thickness: 1.3px !important;
+}
+
+.plan-value-lines li::before,
+.plan-value-lines li:first-child::before,
+.plan-value-lines li:nth-child(2)::before,
+.plan-value-lines li:not(:first-child)::before {
+  content: "" !important;
+  position: absolute !important;
+  left: 0 !important;
+  top: .62em !important;
+  width: 3px !important;
+  height: 3px !important;
+  border-radius: 999px !important;
+  background: currentColor !important;
+  opacity: .42 !important;
+}
+
+.plan-value-lines li strong {
+  color: inherit !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
+  font-weight: 650 !important;
+}
+
+.plan-value-lines li.is-not-included strong,
+.plan-value-lines li[style*="line-through"] strong {
+  color: inherit !important;
+  font-weight: inherit !important;
+}
+
+.hub-context {
+  display: grid !important;
+  gap: 2px !important;
+  margin-top: 5px !important;
+  color: var(--muted) !important;
+  font-size: 10.5px !important;
+  line-height: 1.35 !important;
+  font-weight: 450 !important;
+  opacity: .78 !important;
+}
+
+.hub-context span {
+  display: block !important;
+}
+
+.plan-value-prop {
+  padding: 11px 0 !important;
+  border-bottom: 1px solid rgba(37,36,40,.055) !important;
+}
+
+
+/* Step 8 — unified option weights + larger category icons */
+.plan-value-lines li,
+.plan-value-lines li:first-child,
+.plan-value-lines li:nth-child(2),
+.plan-value-lines li:not(:first-child),
+.plan-value-lines li.is-not-included,
+.plan-value-lines li[style*="line-through"] {
+  font-weight: 450 !important;
+}
+
+.plan-value-lines li strong {
+  font-weight: 650 !important;
+}
+
+.plan-value-icon {
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 10px !important;
+}
+
+.plan-value-icon svg {
+  width: 15px !important;
+  height: 15px !important;
+}
+
+
+/* Step 9 — better icon/category alignment + compact spacing */
+.plan-value-prop {
+  align-items: flex-start !important;
+  grid-template-columns: 30px minmax(0,1fr) !important;
+  gap: 10px !important;
+  padding: 9px 0 !important;
+}
+
+.plan-value-icon {
+  width: 28px !important;
+  height: 28px !important;
+  margin-top: 1px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+}
+
+.plan-value-icon svg {
+  width: 15px !important;
+  height: 15px !important;
+  display: block !important;
+}
+
+.plan-value-label {
+  margin: 0 0 6px !important;
+  display: flex !important;
+  align-items: center !important;
+  min-height: 28px !important;
+}
+
+.plan-value-lines {
+  gap: 3px !important;
+}
+
+.plan-value-lines li,
+.plan-value-lines li:first-child,
+.plan-value-lines li:nth-child(2),
+.plan-value-lines li:not(:first-child),
+.plan-value-lines li.is-not-included,
+.plan-value-lines li[style*="line-through"] {
+  line-height: 1.3 !important;
+  padding-left: 10px !important;
+}
+
+.hub-context {
+  gap: 1px !important;
+  margin-top: 4px !important;
+  line-height: 1.28 !important;
+}
+
+
+/* Final Cloud recap fix — remove duplicate media line from active renderer */
+.plan-value-lines li.is-not-included,
+.plan-value-lines li.disabled {
+  text-decoration: line-through !important;
+  opacity: .46 !important;
+}
+
+
+/* Step 13 — compact recap + Discovery Hubs tooltip */
+.plan-value-label {
+  margin-bottom: 4px !important;
+}
+
+.plan-value-prop {
+  padding: 8px 0 !important;
+}
+
+.plan-value-lines {
+  gap: 2px !important;
+}
+
+.plan-value-lines li.is-not-included,
+.plan-value-lines li.disabled {
+  text-decoration: line-through !important;
+  opacity: .46 !important;
+}
+
+.hub-help {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  margin-left: 6px;
+  border-radius: 999px;
+  background: rgba(37,36,40,.08);
+  color: var(--text);
+  font-size: 9px;
+  line-height: 1;
+  font-weight: 850;
+  vertical-align: 1px;
+  cursor: help;
+  text-decoration: none !important;
+}
+
+.hub-tooltip {
+  left: 16px !important;
+  right: 16px !important;
+  width: calc(100% - 32px) !important;
+  max-width: calc(100% - 32px) !important;
+  position: absolute;
+  z-index: 80;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  width: 270px;
+  padding: 10px 12px;
+  border: 1px solid rgba(37,36,40,.10);
+  border-radius: 12px;
+  background: rgba(255,255,255,.98);
+  color: var(--text);
+  box-shadow: 0 16px 36px rgba(37,36,40,.12);
+  font-size: 11px;
+  line-height: 1.42;
+  font-weight: 450;
+  text-align: left;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 4px);
+  transition: opacity .14s ease, transform .14s ease;
+}
+
+.hub-tooltip strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.hub-help:hover .hub-tooltip,
+.hub-help:focus .hub-tooltip {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+
+/* Step 14 — simplified discoverability + readable tooltip */
+.hub-help {
+  width: auto !important;
+  height: auto !important;
+  min-height: 0 !important;
+  margin-left: 0 !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--muted) !important;
+  font-size: 12px !important;
+  line-height: 1.35 !important;
+  font-weight: 450 !important;
+  text-decoration: underline !important;
+  text-decoration-thickness: 1px !important;
+  text-underline-offset: 3px !important;
+}
+
+.hub-tooltip {
+  position: fixed !important;
+  z-index: 9999 !important;
+  left: auto !important;
+  right: 28px !important;
+  bottom: auto !important;
+  top: 50% !important;
+  width: min(340px, calc(100vw - 56px)) !important;
+  padding: 12px 14px !important;
+  border-radius: 14px !important;
+  transform: translateY(-50%) !important;
+  white-space: normal !important;
+  color: #252428 !important;
+}
+
+.hub-help:hover .hub-tooltip,
+.hub-help:focus .hub-tooltip {
+  opacity: 1 !important;
+  transform: translateY(-50%) !important;
+}
+
+
+/* Step 15 — tooltip layering + tighter recap spacing */
+
+/* Force tooltip above every layer / sticky panel */
+.hub-help {
+  position: relative !important;
+  z-index: 20000 !important;
+}
+
+.hub-tooltip {
+  position: fixed !important;
+  z-index: 2147483647 !important;
+  isolation: isolate !important;
+  pointer-events: none !important;
+  box-shadow: 0 24px 64px rgba(37,36,40,.18) !important;
+}
+
+/* More compact recap rhythm */
+.plan-value-prop {
+  padding: 7px 0 !important;
+}
+
+.plan-value-label {
+  margin-bottom: 2px !important;
+  line-height: 1.05 !important;
+}
+
+.plan-value-lines {
+  gap: 1px !important;
+}
+
+.plan-value-lines li,
+.plan-value-lines li:first-child,
+.plan-value-lines li:nth-child(2),
+.plan-value-lines li:not(:first-child),
+.plan-value-lines li.is-not-included,
+.plan-value-lines li[style*="line-through"] {
+  line-height: 1.24 !important;
+}
+
+.hub-context {
+  margin-top: 2px !important;
+}
+
+
+/* Step 16 — final tooltip layer + fully harmonized option typography */
+
+/* Prevent parent containers from clipping the tooltip */
+.pricing-section,
+.pricing-infos,
+.selected-plan,
+.selected-plan-tile,
+.plan-value-props,
+.plan-value-prop,
+.plan-value-lines,
+.plan-value-lines li {
+  overflow: visible !important;
+}
+
+/* Keep the sticky checkout above normal cards when tooltip is used */
+.selected-plan {
+  z-index: 1000 !important;
+}
+
+.pricing-plan {
+  z-index: 1 !important;
+}
+
+/* Tooltip always on top */
+.hub-help {
+  position: relative !important;
+  z-index: 2147483000 !important;
+}
+
+.hub-tooltip {
+  position: fixed !important;
+  z-index: 2147483647 !important;
+  left: auto !important;
+  right: 24px !important;
+  top: 50% !important;
+  bottom: auto !important;
+  transform: translateY(-50%) !important;
+  width: min(360px, calc(100vw - 48px)) !important;
+  opacity: 0;
+}
+
+.hub-help:hover .hub-tooltip,
+.hub-help:focus .hub-tooltip {
+  opacity: 1 !important;
+  transform: translateY(-50%) !important;
+}
+
+/* Category titles stay uppercase + medium/bold */
+.plan-value-label {
+  font-size: 10.5px !important;
+  line-height: 1.05 !important;
+  font-weight: 850 !important;
+  letter-spacing: .14em !important;
+  text-transform: uppercase !important;
+}
+
+/* Every option line has exactly the same typography, all plans included */
+.plan-value-lines li,
+.plan-value-lines li:first-child,
+.plan-value-lines li:nth-child(2),
+.plan-value-lines li:not(:first-child),
+.plan-value-lines li.is-not-included,
+.plan-value-lines li.disabled,
+.plan-value-lines li[style*="line-through"],
+.plan-value-lines li strong,
+#pricing-summary[style*="255,200,51"] .plan-value-lines li,
+#pricing-summary[style*="255,200,51"] .plan-value-lines li:not(:first-child),
+#pricing-summary[style*="255,200,51"] .plan-value-lines li strong {
+  color: var(--muted) !important;
+  font-size: 12px !important;
+  line-height: 1.26 !important;
+  font-weight: 450 !important;
+  letter-spacing: 0 !important;
+}
+
+/* Keep disabled only visually crossed/faded, without changing size/weight */
+.plan-value-lines li.is-not-included,
+.plan-value-lines li.disabled,
+.plan-value-lines li[style*="line-through"] {
+  opacity: .46 !important;
+  text-decoration: line-through !important;
+  text-decoration-thickness: 1.3px !important;
+}
+
+/* Tooltip text can be readable but does not affect recap option typography */
+.hub-tooltip,
+.hub-tooltip strong {
+  color: #252428 !important;
+  font-size: 11px !important;
+  line-height: 1.42 !important;
+}
+
+.hub-tooltip strong {
+  font-weight: 850 !important;
+}
+
+
+/* Step 17 — restore checkout card integrity while keeping tooltip above */
+.pricing-section,
+.pricing-infos,
+.plan-value-props,
+.plan-value-prop,
+.plan-value-lines,
+.plan-value-lines li {
+  overflow: initial !important;
+}
+
+.selected-plan {
+  border-radius: 30px !important;
+  overflow: hidden !important;
+  position: sticky !important;
+  z-index: 1000 !important;
+  background: var(--surface) !important;
+}
+
+.selected-plan-tile {
+  border-radius: 30px 30px 22px 22px !important;
+  overflow: hidden !important;
+}
+
+@media (min-width: 861px) {
+  .selected-plan {
+    max-height: calc(100vh - 28px);
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+  }
+}
+
+/* Tooltip remains viewport-fixed, so it is not clipped by the checkout card */
+.hub-tooltip {
+  position: fixed !important;
+  z-index: 2147483647 !important;
+  right: 24px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+}
+
+.hub-help:hover .hub-tooltip,
+.hub-help:focus .hub-tooltip {
+  opacity: 1 !important;
+  transform: translateY(-50%) !important;
+}
+
+
+/* Step 18 — tooltip contained inside checkout panel */
+.hub-help {
+  position: static !important;
+  display: inline-flex !important;
+  width: auto !important;
+  height: auto !important;
+  margin-left: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  color: var(--muted) !important;
+  font-size: 12px !important;
+  line-height: 1.26 !important;
+  font-weight: 450 !important;
+  text-decoration: underline !important;
+  text-underline-offset: 3px !important;
+  cursor: help !important;
+}
+
+.hub-tooltip {
+  position: absolute !important;
+  z-index: 1005 !important;
+  left: 22px !important;
+  right: 22px !important;
+  top: auto !important;
+  bottom: calc(100% + 8px) !important;
+  width: auto !important;
+  max-width: none !important;
+  transform: translateY(4px) !important;
+  padding: 12px 14px !important;
+  border-radius: 14px !important;
+  border: 1px solid rgba(37,36,40,.10) !important;
+  background: rgba(255,255,255,.98) !important;
+  box-shadow: 0 18px 44px rgba(37,36,40,.14) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.plan-value-lines li {
+  position: relative !important;
+}
+
+.hub-help:hover .hub-tooltip,
+.hub-help:focus .hub-tooltip {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+
+/* Keep checkout shape intact */
+.selected-plan {
+  overflow: hidden !important;
+  border-radius: 30px !important;
+}
+
+@media (min-width: 861px) {
+  .selected-plan {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+  }
+}
+
+
+/* Step 19 — wider contained tooltip */
+.hub-tooltip {
+  left: 16px !important;
+  right: 16px !important;
+  width: calc(100% - 32px) !important;
+  max-width: calc(100% - 32px) !important;
+  padding: 13px 15px !important;
+}
+
+
+/* Step 22 — wider contained tooltip + compact elegant recap */
+.hub-tooltip {
+  left: 10px !important;
+  right: 10px !important;
+  width: calc(100% - 20px) !important;
+  max-width: calc(100% - 20px) !important;
+  padding: 13px 16px !important;
+}
+
+.plan-value-props {
+  padding-top: 4px !important;
+  padding-bottom: 10px !important;
+}
+
+.plan-value-prop {
+  padding: 6px 0 !important;
+}
+
+.plan-value-label {
+  margin-bottom: 1px !important;
+  line-height: 1 !important;
+}
+
+.plan-value-lines {
+  gap: 1px !important;
+}
+
+.plan-value-lines li,
+.plan-value-lines li:first-child,
+.plan-value-lines li:nth-child(2),
+.plan-value-lines li:not(:first-child),
+.plan-value-lines li.is-not-included,
+.plan-value-lines li.disabled,
+.plan-value-lines li[style*="line-through"] {
+  line-height: 1.22 !important;
+}
+
+.checkout-config {
+  padding-top: 8px !important;
+  padding-bottom: 6px !important;
+}
+
+.checkout-field {
+  gap: 5px !important;
+}
+
+.checkout-field select {
+  height: 40px !important;
+}
+
+.pricing-plan-sign-up {
+  height: 46px !important;
+  margin-top: 10px !important;
+  margin-bottom: 14px !important;
+}
+
+
+/* Step 23 — premium hero + refined motion polish */
+
+.hero-section,
+.pricing-hero,
+.hero {
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.hero-section::before,
+.pricing-hero::before,
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(68,86,225,.10), transparent 30%),
+    radial-gradient(circle at 80% 20%, rgba(92,108,229,.08), transparent 32%),
+    radial-gradient(circle at 50% 80%, rgba(160,175,242,.10), transparent 34%);
+  filter: blur(24px);
+  animation: heroAmbientFloat 14s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+.hero-section::after,
+.pricing-hero::after,
+.hero::after {
+  content: "";
+  position: absolute;
+  width: 420px;
+  height: 420px;
+  right: -120px;
+  top: -120px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(255,255,255,.24), transparent 70%);
+  opacity: .5;
+  pointer-events: none;
+}
+
+@keyframes heroAmbientFloat {
+  0% {
+    transform: translate3d(0,0,0) scale(1);
+  }
+  100% {
+    transform: translate3d(0,-12px,0) scale(1.03);
+  }
+}
+
+.hero-trusted {
+  margin-top: 14px;
+  color: rgba(37,36,40,.64);
+  font-size: 13px;
+  line-height: 1.45;
+  font-weight: 500;
+  max-width: 820px;
+}
+
+/* Floating premium checkout */
+.selected-plan {
+  background: rgba(255,255,255,.82) !important;
+  backdrop-filter: blur(18px) saturate(1.2) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.2) !important;
+  box-shadow:
+    0 12px 40px rgba(37,36,40,.08),
+    0 2px 10px rgba(37,36,40,.04) !important;
+  border: 1px solid rgba(255,255,255,.65) !important;
+}
+
+/* More premium dropdowns */
+.checkout-field select {
+  transition:
+    border-color .18s ease,
+    box-shadow .18s ease,
+    transform .18s ease,
+    background-color .18s ease !important;
+}
+
+.checkout-field select:hover {
+  border-color: rgba(68,86,225,.34) !important;
+  box-shadow: 0 6px 18px rgba(68,86,225,.08) !important;
+}
+
+.checkout-field select:focus {
+  border-color: rgba(68,86,225,.44) !important;
+  box-shadow:
+    0 0 0 4px rgba(68,86,225,.10),
+    0 10px 26px rgba(68,86,225,.10) !important;
+  transform: translateY(-1px);
+}
+
+/* Line-by-line premium transitions */
+.plan-value-lines li {
+  transition:
+    opacity .18s ease,
+    transform .18s ease,
+    color .18s ease !important;
+}
+
+.plan-value-lines li.line-updated {
+  animation: lineUpdateMotion .22s cubic-bezier(.2,.8,.2,1);
+}
+
+@keyframes lineUpdateMotion {
+  0% {
+    opacity: .42;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Premium price motion */
+.total-price-value,
+.total-price-suffix,
+.total-price-yearly {
+  transition:
+    transform .22s cubic-bezier(.2,.8,.2,1),
+    opacity .22s cubic-bezier(.2,.8,.2,1);
+}
+
+.total-price-value.price-premium,
+.total-price-suffix.price-premium,
+.total-price-yearly.price-premium {
+  animation: premiumPriceShift .24s cubic-bezier(.2,.8,.2,1);
+}
+
+@keyframes premiumPriceShift {
+  0% {
+    opacity: .45;
+    transform: translateY(7px) scale(.975);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(-1px) scale(1.01);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+
+/* Step 24 — clean white hero + premium trusted line */
+.pricing-hero,
+.hero-section,
+.hero {
+  background: #FAFAFB !important;
+  overflow: visible !important;
+}
+
+.pricing-hero::before,
+.pricing-hero::after,
+.hero-section::before,
+.hero-section::after,
+.hero::before,
+.hero::after {
+  display: none !important;
+  content: none !important;
+  animation: none !important;
+  background: none !important;
+}
+
+.hero-trusted {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: fit-content;
+  max-width: 860px;
+  margin: 18px auto 0;
+  padding: 8px 14px;
+  border: 1px solid rgba(37,36,40,.08);
+  border-radius: 999px;
+  background: rgba(255,255,255,.72);
+  color: rgba(37,36,40,.66);
+  font-size: 12.5px;
+  line-height: 1.35;
+  font-weight: 560;
+  letter-spacing: -.005em;
+}
+
+.hero-trusted::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #2F43DE;
+  box-shadow: 0 0 0 4px rgba(47,67,222,.10);
+  flex: 0 0 auto;
+}
+
+.hero-trusted strong {
+  color: #252428;
+  font-weight: 760;
+}
+
+@media (max-width: 680px) {
+  .hero-trusted {
+    display: flex;
+    width: 100%;
+    border-radius: 18px;
+    text-align: left;
+    align-items: flex-start;
+  }
+
+  .hero-trusted::before {
+    margin-top: 5px;
+  }
+}
+
+
+/* Step 25 — premium marketplace social proof */
+.pricing-social-proof {
+  padding: 56px 24px 12px;
+}
+
+.social-proof-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr;
+  gap: 44px;
+  align-items: start;
+}
+
+.social-proof-divider {
+  width: 1px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(37,36,40,.08),
+    transparent
+  );
+  min-height: 120px;
+}
+
+.social-proof-column {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.social-proof-label {
+  color: rgba(37,36,40,.42);
+  font-size: 10.5px;
+  line-height: 1;
+  font-weight: 820;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.social-proof-logos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 24px;
+  align-items: center;
+}
+
+.social-proof-logos span {
+  color: rgba(37,36,40,.48);
+  font-size: 16px;
+  line-height: 1;
+  font-weight: 760;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  transition:
+    opacity .18s ease,
+    color .18s ease,
+    transform .18s ease;
+  cursor: default;
+}
+
+.social-proof-logos span:hover {
+  color: rgba(37,36,40,.78);
+  transform: translateY(-1px);
+}
+
+@media (max-width: 860px) {
+  .pricing-social-proof {
+    padding-top: 42px;
+  }
+
+  .social-proof-inner {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+
+  .social-proof-divider {
+    display: none;
+  }
+
+  .social-proof-logos {
+    gap: 14px 18px;
+  }
+
+  .social-proof-logos span {
+    font-size: 14px;
+  }
+}
+
+
+/* Step 26 — ecosystem social proof */
+.hero-trusted {
+  display: none !important;
+}
+
+.ecosystem-proof {
+  padding: 58px 24px 18px;
+}
+
+.ecosystem-proof-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 30px;
+  border: 1px solid rgba(37,36,40,.07);
+  border-radius: 30px;
+  background: rgba(255,255,255,.62);
+}
+
+.ecosystem-proof-header {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 26px;
+}
+
+.ecosystem-proof-kicker {
+  margin: 0;
+  color: rgba(37,36,40,.46);
+  font-size: 10.5px;
+  line-height: 1;
+  font-weight: 850;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.ecosystem-proof h3 {
+  margin: 0;
+  max-width: 680px;
+  color: var(--text);
+  font-size: clamp(26px, 3vw, 38px);
+  line-height: 1.02;
+  letter-spacing: -.045em;
+  font-weight: 820;
+}
+
+.ecosystem-proof-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.ecosystem-stat {
+  min-height: 230px;
+  padding: 20px;
+  border: 1px solid rgba(37,36,40,.055);
+  border-radius: 24px;
+  background: rgba(255,255,255,.70);
+  display: flex;
+  flex-direction: column;
+}
+
+.ecosystem-stat-number {
+  color: var(--text);
+  font-size: 34px;
+  line-height: .95;
+  letter-spacing: -.055em;
+  font-weight: 840;
+}
+
+.ecosystem-stat-title {
+  margin-top: 8px;
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.15;
+  font-weight: 780;
+  letter-spacing: -.015em;
+}
+
+.ecosystem-stat-copy {
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.4;
+  font-weight: 460;
+}
+
+.ecosystem-wordmarks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  margin-top: auto;
+  padding-top: 22px;
+}
+
+.ecosystem-wordmarks span {
+  color: rgba(37,36,40,.46);
+  font-size: 10.5px;
+  line-height: 1;
+  font-weight: 780;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  transition: color .18s ease, transform .18s ease;
+}
+
+.ecosystem-wordmarks span:hover {
+  color: rgba(37,36,40,.78);
+  transform: translateY(-1px);
+}
+
+@media (max-width: 960px) {
+  .ecosystem-proof-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .ecosystem-stat {
+    min-height: auto;
+  }
+
+  .ecosystem-wordmarks {
+    margin-top: 18px;
+    padding-top: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .ecosystem-proof {
+    padding: 38px 18px 16px;
+  }
+
+  .ecosystem-proof-inner {
+    padding: 22px;
+    border-radius: 24px;
+  }
+}
+
+</style>
+</head>
+<body>
+ <div class="page-shell">
+  <div class="pricing-hero"><h2>Where creators, music pros<br />and entertainment connect</h2><p style="margin:18px auto 0;max-width:720px;color:var(--muted);font-size:18px;line-height:1.5;">Organize, discover, pitch and collaborate on music — powered by ethical AI.</p>
+</div>
+  <section class="pricing-section">
+   <div class="pricing-infos">
+    <div class="pricing-plans"><div class="pricing-step"><span class="pricing-step-title">Choose your plan</span><span class="pricing-step-description">Find the workflow built for the way you work.</span></div><div id="plans"></div></div>
+    <div id="plan-features">
+     <div class="mt-64">
+      <div class="pricing-step"><span class="pricing-step-title">Configure your workspace</span><span class="pricing-step-description">Choose your catalog size and promotion settings.</span></div>
+      <div class="feature-title" id="storage-section"><div class="feature-title-top"><span id="icon-cloud-title"></span><span>Workspace</span></div><div class="feature-title-description">Choose how much media you want to manage.</div></div>
+      <div id="plan-tracks" class="mt-16"></div>
+      <div class="feature-title" id="pricing-hub-section"><div class="feature-title-top"><span id="icon-rocket-title"></span><span id="hub-section-title">Promotion</span></div><div class="feature-title-description" id="hub-section-description">Choose how much music you want to pitch.</div></div>
+      <div class="mb-32 mt-16"><div style="display:grid;gap:8px;margin-bottom:14px;padding:14px;border-radius:14px;background:rgba(37,36,40,.03);border:1px solid rgba(37,36,40,.06);"><div style="font-size:13px;line-height:1.45;color:var(--text);font-weight:700;">Turn your catalog into opportunities across Bridge Discovery Hubs.</div><div style="font-size:12px;line-height:1.45;color:var(--muted);">1 promotion slot = 1 track published in 1 Discovery Hub.</div><div style="font-size:12px;line-height:1.45;color:var(--muted);">Publishing the same track across multiple Hubs uses multiple slots.</div></div>
+       <p class="feature-hub-label"><svg class="hub-brand-icon" viewBox="0 0 385 385"><rect width="384.218" height="384.218" rx="43.9106" fill="#6070E5"/><text x="192" y="225" text-anchor="middle" fill="white" font-size="132" font-weight="800" font-family="Inter, Arial, sans-serif">S</text></svg><strong>Sync</strong> · Music for film, TV and ads</p>
+       <p class="feature-hub-label"><svg class="hub-brand-icon" viewBox="0 0 385 385"><rect width="384.218" height="384.218" rx="43.9106" fill="#59D994"/><text x="192" y="225" text-anchor="middle" fill="white" font-size="132" font-weight="800" font-family="Inter, Arial, sans-serif">L</text></svg><strong>Library</strong> · Production music catalogs</p>
+       <p class="feature-hub-label"><svg class="hub-brand-icon" viewBox="0 0 385 385"><rect width="384.218" height="384.218" rx="43.9106" fill="#FF9143"/><text x="192" y="225" text-anchor="middle" fill="white" font-size="132" font-weight="800" font-family="Inter, Arial, sans-serif">S</text></svg><strong>Score</strong> · Composers & scoring projects</p>
+      </div>
+      <div id="plan-tracks-on-hub"></div>
+     </div>
+    </div>
+   </div>
+   <aside class="selected-plan" id="pricing-summary">
+    <div class="selected-plan-tile">
+     <div class="selected-plan-title">Free plan</div>
+     <div class="selected-plan-subtitle">Start building your catalog</div>
+     <div class="selected-plan-meta"><div class="selected-plan-loved" id="selected-plan-loved">Loved by everyone</div></div>
+    </div>
+    <div class="pricing-plan-accent"><div class="total-price"><div class="total-price-main"><span class="total-price-value" id="total-price-value"></span><span class="total-price-suffix" id="total-price-suffix"></span></div><div class="total-price-yearly" id="total-price-yearly"></div></div><div class="hidden" id="yearly-billing-section"><div class="billing-toggle-row"><label class="switch-year"><input id="yearly-toggle" checked type="checkbox" /><span class="slider"></span></label><span class="pricing-plan-text">Yearly</span></div></div></div>
+
+    <div class="plan-value-props" id="plan-value-props"></div>
+    <div class="checkout-config" id="checkout-config">
+     <div class="checkout-config-title">Personalisation</div>
+     <div class="checkout-field" id="checkout-workspace-field">
+      <label for="checkout-workspace-select">Cloud size</label>
+      <select id="checkout-workspace-select"></select><div class="checkout-option-detail" id="checkout-workspace-detail"></div>
+     </div>
+     <div class="checkout-field" id="checkout-hub-field">
+      <label for="checkout-hub-select">Track slots on Discovery Hubs</label>
+      <select id="checkout-hub-select"></select><div class="checkout-option-detail" id="checkout-hub-detail"></div>
+     </div>
+    </div>
+<button class="pricing-plan-sign-up" id="plan-submit">Get started</button>
+    <div id="plan-settings" style="padding:10px 0 6px;">
+     <div class="checkout-warning" id="checkout-warning"><svg viewBox="0 0 20 20"><path fill-rule="evenodd" clip-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.166-.17 2.625-1.515 2.625H3.72c-1.345 0-2.188-1.459-1.515-2.625L8.485 2.495ZM10 6.25a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0V7A.75.75 0 0 1 10 6.25Zm0 7.5a.875.875 0 1 0 0-1.75.875.875 0 0 0 0 1.75Z"/></svg><span>Please choose a Track slots on Discovery Hubs option before checkout, or select “I’ll add this option later”.</span></div>
+     <div class="selected-plan-details" id="selected-plan-details"></div>
+    </div>
+   </aside>
+  </section>
+ </div>
+
+ <script>
+  const svg = {
+   bolt: '<svg class="spec-icon" viewBox="0 0 24 24"><path d="M13.5 2.25 4.8 13.2a.75.75 0 0 0 .588 1.215h5.042l-1.1 6.46a.75.75 0 0 0 1.32.605l8.7-10.95a.75.75 0 0 0-.588-1.215H13.72l1.1-6.46a.75.75 0 0 0-1.32-.605Z"/></svg>',
+   cloud: '<svg class="spec-icon" viewBox="0 0 24 24"><path d="M4.5 9.75C4.5 6.436 7.186 3.75 10.5 3.75c2.528 0 4.689 1.563 5.573 3.774A3.76 3.76 0 0 1 16.5 7.5a3.75 3.75 0 0 1 3.706 4.327A4.5 4.5 0 0 1 18 20.25H6.75A5.25 5.25 0 0 1 4.52 10.246 6.1 6.1 0 0 1 4.5 9.75Z"/></svg>',
+   paper: '<svg class="spec-icon" viewBox="0 0 24 24"><path d="M3.478 2.404a.75.75 0 0 0-.926.94l2.432 7.906H13.5a.75.75 0 0 1 0 1.5H4.984l-2.432 7.905a.75.75 0 0 0 .926.94 54.8 54.8 0 0 0 18.445-8.986.75.75 0 0 0 0-1.218A54.8 54.8 0 0 0 3.478 2.404Z"/></svg>',
+   globe: '<svg class="spec-icon" viewBox="0 0 24 24"><path d="M12 2.25a9.75 9.75 0 1 0 0 19.5 9.75 9.75 0 0 0 0-19.5Zm0 1.5c.96 1.4 1.67 2.96 2.08 4.62a11.2 11.2 0 0 1-4.16 0A16.7 16.7 0 0 1 12 3.75Zm-3.58.9A18.2 18.2 0 0 0 7.5 8.92 11.4 11.4 0 0 1 4 6.74a8.28 8.28 0 0 1 4.42-2.09Zm7.16 0A8.28 8.28 0 0 1 20 6.74a11.4 11.4 0 0 1-3.5 2.18 18.2 18.2 0 0 0-.92-4.27ZM3.3 8.1a12.9 12.9 0 0 0 3.95 2.28 18.7 18.7 0 0 0 0 3.24A12.9 12.9 0 0 0 3.3 15.9a8.3 8.3 0 0 1 0-7.8Zm17.4 0a8.3 8.3 0 0 1 0 7.8 12.9 12.9 0 0 0-3.95-2.28 18.7 18.7 0 0 0 0-3.24A12.9 12.9 0 0 0 20.7 8.1ZM8.75 10.8a12.8 12.8 0 0 0 6.5 0 17.3 17.3 0 0 1 0 2.4 12.8 12.8 0 0 0-6.5 0 17.3 17.3 0 0 1 0-2.4Zm1.17 4.83a11.2 11.2 0 0 1 4.16 0A16.7 16.7 0 0 1 12 20.25a16.7 16.7 0 0 1-2.08-4.62Z"/></svg>',
+   rocket: '<svg class="spec-icon" viewBox="0 0 24 24"><path d="M9.315 7.584A15.7 15.7 0 0 1 21.75 1.5a.75.75 0 0 1 .75.75 15.7 15.7 0 0 1-6.083 12.436A6.8 6.8 0 0 1 16.5 15.75 6.75 6.75 0 0 1 9.75 22.5a.75.75 0 0 1-.75-.75v-4.132A16 16 0 0 1 6.382 15H2.25a.75.75 0 0 1-.75-.75A6.75 6.75 0 0 1 8.25 7.5c.362 0 .718.029 1.065.084ZM15 6.75A2.25 2.25 0 1 0 15 11.25 2.25 2.25 0 0 0 15 6.75Z"/></svg>',
+   chart: '<svg class="spec-icon" viewBox="0 0 24 24"><path d="M6 3h12a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3Zm1.5 10.5a.75.75 0 0 0-.75.75v2.25a.75.75 0 0 0 1.5 0v-2.25a.75.75 0 0 0-.75-.75Zm3-2.25a.75.75 0 0 0-.75.75v4.5a.75.75 0 0 0 1.5 0V12a.75.75 0 0 0-.75-.75Zm3-2.25a.75.75 0 0 0-.75.75v6.75a.75.75 0 0 0 1.5 0V9.75A.75.75 0 0 0 13.5 9Zm3-2.25a.75.75 0 0 0-.75.75v9a.75.75 0 0 0 1.5 0v-9a.75.75 0 0 0-.75-.75Z"/></svg>',
+   search: '<svg class="spec-icon" viewBox="0 0 24 24"><path d="M10.5 3.75a6.75 6.75 0 1 0 4.243 11.999l4.254 4.254a.75.75 0 1 0 1.06-1.06l-4.253-4.255A6.75 6.75 0 0 0 10.5 3.75Zm-5.25 6.75a5.25 5.25 0 1 1 10.5 0 5.25 5.25 0 0 1-10.5 0Z"/></svg>',
+   plus: '<svg class="spec-icon" viewBox="0 0 20 20"><path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z"/></svg>',
+   team: '<svg class="spec-icon" viewBox="0 0 24 24"><path d="M8.25 6.75a3.75 3.75 0 1 1 7.5 0 3.75 3.75 0 0 1-7.5 0ZM3.75 20.25a6.75 6.75 0 0 1 13.5 0 .75.75 0 0 1-.75.75h-12a.75.75 0 0 1-.75-.75ZM17.25 12.75a.75.75 0 0 1 .75-.75h1.5a3 3 0 0 1 3 3v3a.75.75 0 0 1-.75.75h-2.6a8.24 8.24 0 0 0-2.55-5.43.75.75 0 0 1 .65-.57ZM18 5.25a2.25 2.25 0 1 1 0 4.5 2.25 2.25 0 0 1 0-4.5Z"/></svg>'
+  };
+  document.getElementById('icon-cloud-title').innerHTML = svg.cloud.replace('spec-icon','pricing-icon');
+  document.getElementById('icon-rocket-title').innerHTML = svg.rocket.replace('spec-icon','pricing-icon');
+
+  const planCopy = {
+   free: {
+    title: 'Start building your catalog',
+    subtitle: 'Join the next generation music workflow.',
+    loved: 'LOVED BY EVERYONE',
+    restriction: '',
+    scope: '',
+    pills: ['Cloud 2 GB', 'Sharing', 'AI Auto-tagging'],
+    capabilities: []
+   },
+   talentPro: {
+    title: 'Get heard. Get opportunities.',
+    subtitle: 'Share your music and connect with labels and supervisors.',
+    loved: 'LOVED BY ARTISTS, COMPOSERS & VOICE-OVER',
+    restriction: '',
+    scope: '',
+    pills: ['Cloud 50 GB', 'Advanced Sharing', 'Discoverability', 'Advanced Analytics'],
+    capabilities: []
+   },
+   musicPro: {
+    title: 'Turn your catalog into opportunities.',
+    subtitle: 'Manage, publish and grow your catalog with powerful tools.',
+    loved: 'LOVED BY LABELS, PUBLISHERS, MANAGERS & PR',
+    restriction: '',
+    scope: '',
+    pills: ['Cloud 250 GB+', 'Advanced Sharing', 'Discovery Hubs', 'Premium Analytics', 'Premium Ingestion'],
+    capabilities: []
+   },
+   supervisorPro: {
+    title: 'Find the perfect track, fast.',
+    subtitle: 'Discover, license and manage music for your projects.',
+    loved: 'LOVED BY SUPERVISORS, FILM, TV, ADS & GAMES',
+    restriction: '',
+    scope: '',
+    pills: ['Cloud 1 TB+', 'Advanced Sharing', 'Premium Catalog Access', 'Advanced Analytics', 'Premium Ingestion'],
+    capabilities: []
+   },
+   enterprise: {
+    title: 'Custom workflows for large organizations',
+    subtitle: 'Enterprise-grade infrastructure and onboarding.',
+    loved: 'LOVED BY MAJORS, BROADCASTERS & MEDIA GROUPS',
+    restriction: '',
+    scope: '',
+    pills: ['Custom Cloud', 'Advanced Workflows', 'Dedicated Support'],
+    capabilities: []
+   }
+  };
+  const plans = [
+   { id:'free', name:'Free', members:3, tracks:[{id:'free-25', label:'2 GB • Up to 25 tracks', detail:'All media (video, PDF and image) included', yearly:0, monthly:0}], hubs:[{id:'free-hub-0', label:'Discovery Hubs not included', summary:'Discovery Hubs not included', yearly:0, monthly:0}] },
+   { id:'talentPro', name:'Talent Pro', isPro:true, color:'#FFC833', colorRgb:'255,200,51', badgeText:'#252428', members:5, tracks:[{id:'talent-250', label:'50 GB • Up to 250 tracks', detail:'All media (video, PDF and image) included', yearly:5, monthly:7}], hubs:[{id:'talent-hub-20', label:'20 track slots on Discovery Hubs', detail:'Publish 20 tracks across Bridge Sync, Bridge Score and Bridge Library', summary:'20 track slots on Discovery Hubs', yearly:4, monthly:5, helper:'Recommended to start getting discovered'},{id:'talent-hub-later', label:'I’ll add this option later', detail:'No Discovery Hub slots selected', summary:'No Discovery Hub slots selected', yearly:0, monthly:0, ghost:true}] },
+   { id:'musicPro', name:'Music Pro', isPro:true, color:'#2F43DE', colorRgb:'47,67,222', badgeText:'#FFFFFF', members:7, tracks:[{id:'music-1000-250gb', label:'250 GB • Up to 1,000 tracks (or more)', detail:'All media (video, PDF and image) included', yearly:9, monthly:12},{id:'music-2500-1tb', label:'1 TB • Up to 2,500 tracks (or more)', detail:'All media (video, PDF and image) included', yearly:14, monthly:18},{id:'music-5000-2tb', label:'2 TB • Up to 5,000 tracks (or more)', detail:'All media (video, PDF and image) included', yearly:19, monthly:24},{id:'music-unlimited-5tb', label:'5 TB • Unlimited tracks (or more)', detail:'All media (video, PDF and image) included', yearly:49, monthly:59}], hubs:[{id:'music-hub-100', label:'100 track slots on Discovery Hubs', detail:'Publish tracks across Bridge Sync, Bridge Score and Bridge Library', summary:'100 track slots on Discovery Hubs', yearly:19, monthly:24, helper:'Recommended for active catalogs'},{id:'music-hub-1000', label:'1,000 track slots on Discovery Hubs', detail:'Built for recurring release campaigns', summary:'1,000 track slots on Discovery Hubs', yearly:29, monthly:37, helper:'Built for recurring release campaigns'},{id:'music-hub-2500', label:'2,500 track slots on Discovery Hubs', detail:'For growing catalogs and artist rosters', summary:'2,500 track slots on Discovery Hubs', yearly:49, monthly:62, helper:'For growing catalogs and artist rosters'},{id:'music-hub-5000', label:'5,000 track slots on Discovery Hubs', detail:'For large-scale music promotion operations', summary:'5,000 track slots on Discovery Hubs', yearly:69, monthly:87, helper:'For large-scale music promotion operations'},{id:'music-hub-later', label:'I’ll add this option later', detail:'No Discovery Hub slots selected', summary:'No Discovery Hub slots selected', yearly:0, monthly:0, ghost:true}] },
+   { id:'supervisorPro', name:'Supervisor / Media Pro', isPro:true, color:'#FF3364', colorRgb:'255,51,100', badgeText:'#FFFFFF', members:7, tracks:[{id:'supervisor-1tb', label:'1 TB', detail:'Unlimited tracks & media', yearly:19, monthly:24},{id:'supervisor-2tb', label:'2 TB', detail:'Unlimited tracks & media', yearly:29, monthly:36},{id:'supervisor-3tb', label:'3 TB', detail:'Unlimited tracks & media', yearly:39, monthly:49},{id:'supervisor-5tb', label:'5 TB', detail:'Unlimited tracks & media', yearly:49, monthly:59}], hubs:[{id:'supervisor-buyer-access', label:'Buyer Access Only', detail:'Access premium catalogs on Bridge Discovery Hubs', summary:'Buyer Access Only', yearly:0, monthly:0}] },
+   { id:'enterprise', name:'Enterprise', members:null, tracks:[{id:'custom-tracks', label:'Custom catalog capacity', detail:'Custom media, tracks and storage limits', yearly:0, monthly:0}], hubs:[{id:'custom-hub-0', label:'Custom Discovery Hub setup', detail:'Tailored promotion and discovery workflows', summary:'Custom Discovery Hub setup', yearly:0, monthly:0}] }
+  ];
+  const state = { planIndex:0, trackIndex:0, hubIndex:0, yearly:true, incomplete:false };
+  const $ = s => document.querySelector(s); const $$ = s => Array.from(document.querySelectorAll(s));
+  const isResponsive = () => window.matchMedia('(max-width: 860px)').matches;
+  const price = option => state.yearly ? option.yearly : option.monthly;
+  const priceLabel = amount => amount ? `<div class="pricing-plan-price-main"><span class="pricing-plan-price-value">${amount}€</span><span class="pricing-plan-price-suffix">/mo</span></div><div class="pricing-plan-price-yearly">billed yearly</div>` : '';
+  const scrollToTarget = (selector, block='start') => requestAnimationFrame(() => { const el = $(selector); if (el) el.scrollIntoView({ behavior:'smooth', block }); });
+  const specIcon = spec => { const v = spec.toLowerCase(); if(v.includes('everything')) return svg.plus; if(v.includes('premium catalogs')) return svg.search; if(v.includes('cloud')||v.includes('tracks')||v.includes('auto-tagging')||v.includes('ingestion')||v.includes('ai search')) return svg.cloud; if(v.includes('sharing')) return svg.paper; if(v.includes('submit')||v.includes('discovery')) return svg.rocket; if(v.includes('works')||v.includes('analytics')) return svg.chart; if(v.includes('teamwork')||v.includes('members')) return svg.team; return ''; };
+  const summaryIcon = icon => `<span class="summary-icon">${icon.replace('spec-icon','')}</span>`;
+
+  function diamondSvg(){
+   return `<svg class="pricing-plan-diamond" width="21" height="20" viewBox="0 0 21 20" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#clipDiamond)"><path d="M5.26953 1.36719L6.35156 3.74805L8.18555 4.58203H15.7246L15.8096 4.58691C16.005 4.61152 16.1821 4.72048 16.293 4.88672L19.0273 8.98828C19.197 9.24307 19.1768 9.58007 18.9775 9.8125L10.7744 19.3828C10.6425 19.5365 10.4486 19.6238 10.2461 19.6211C10.0434 19.6181 9.85124 19.5256 9.72363 19.3682L1.97656 9.79785C1.80124 9.58124 1.77502 9.27883 1.91016 9.03516L3.0498 6.98438L3.19824 6.71484L0.945312 5.69141L0 5.26172L0.945312 4.83203L3.32715 3.74902L4.41016 1.36719L4.83984 0.421875L5.26953 1.36719ZM8.93555 9.35742L7.48242 10.0176L8.93555 10.6787L9.59668 12.1318L10.2568 10.6787L11.7109 10.0176L10.2568 9.35742L9.59668 7.9043L8.93555 9.35742ZM4.11426 4.30176L4.04102 4.46289L3.87988 4.53613L2.28125 5.26172L3.87988 5.98828L4.04102 6.06152L4.11426 6.22266L4.83984 7.82031L5.56641 6.22266L5.63965 6.06152L5.80078 5.98828L7.39844 5.26172L5.80078 4.53613L5.63965 4.46289L5.56641 4.30176L4.83984 2.70312L4.11426 4.30176Z" fill="currentColor"/></g><defs><clipPath id="clipDiamond"><rect width="19.142" height="19.1993" fill="white" transform="translate(0 0.421875)"/></clipPath></defs></svg>`;
+  }
+
+  function renderPlans(){
+   $('#plans').innerHTML = plans.map((plan,index)=>{
+    const start = plan.id === 'enterprise' ? '' : priceLabel(price(plan.tracks[0]));
+    const pills = (planCopy[plan.id].pills || []).map(pill => `<span class="plan-picker-pill">${pill}</span>`).join('');
+    return `<div class="pricing-plan ${index===state.planIndex?'selected':''}" data-plan-index="${index}" data-plan-id="${plan.id}" style="--plan-color:${plan.color||'#252428'};--plan-rgb:${plan.colorRgb||'37,36,40'};--plan-badge-text:${plan.badgeText||'#FFFFFF'}">
+     <div class="left">
+      <div class="pricing-plan-name">${plan.isPro ? diamondSvg() : ''}<span>${plan.name}</span>${plan.id === "musicPro" ? `<span class="plan-badge-popular">Most Popular</span>` : ""}</div>
+      <div class="pricing-plan-title">${planCopy[plan.id].title}</div>
+      ${planCopy[plan.id].subtitle ? `<div class="pricing-plan-subtitle-line">${planCopy[plan.id].subtitle}</div>` : ''}
+      <div class="pricing-plan-lovedby">${planCopy[plan.id].loved}</div>
+      <div class="plan-picker-pills">${pills}</div>
+     </div>
+     ${start ? `<div class="right"><div class="pricing-plan-notice">Starting at</div><div class="pricing-plan-price">${start}</div></div>`:''}
+    </div>`;
+   }).join('');
+   $$('#plans .pricing-plan').forEach(card => card.addEventListener('click', () => selectPlan(Number(card.dataset.planIndex), true)));
+  }
+
+  function updateHubSection(plan){
+   const title = $('#hub-section-title');
+   const description = $('#hub-section-description');
+   if(!title || !description || !plan) return;
+   if(plan.id === 'supervisorPro'){
+    title.textContent = 'Discover premium music catalogs';
+    description.textContent = 'Access Bridge Discovery Hubs to search, discover and license tracks faster.';
+   } else {
+    title.textContent = 'Get discovered';
+    description.textContent = 'Promote your music across Bridge Discovery Hubs and connect with labels, supervisors and buyers.';
+   }
+  }
+
+  function renderOptions(){
+   const plan = plans[state.planIndex];
+   updateHubSection(plan);
+   $('#plan-tracks').innerHTML = plan.tracks.map((o,i)=>`<div class="pricing-plan ${i===state.trackIndex?'selected':''}" data-track-index="${i}"><div class="left"><div><div class="pricing-plan-title">${o.label}</div>${o.helper?`<div class="pricing-plan-description" style="margin-top:6px;font-size:13px;">${o.helper}</div>`:''}</div></div>${price(o)?`<div class="right"><div class="pricing-plan-price">${priceLabel(price(o))}</div></div>`:'<div class="right"></div>'}</div>`).join('');
+   $('#plan-tracks-on-hub').innerHTML = plan.hubs.map((o,i)=>`<div class="pricing-plan ${o.ghost?'ghost-option':''} ${i===state.hubIndex && !state.incomplete?'selected':''}" data-hub-index="${i}"><div class="left"><div class="pricing-plan-title">${o.label}</div></div>${price(o)?`<div class="right"><div class="pricing-plan-price">${priceLabel(price(o))}</div></div>`:'<div class="right"></div>'}</div>`).join('');
+   $$('#plan-tracks .pricing-plan').forEach(card => card.addEventListener('click',()=>{ state.trackIndex=Number(card.dataset.trackIndex); update(); if(isResponsive()) scrollToTarget(state.planIndex===3 ? '#pricing-summary' : '#pricing-hub-section'); }));
+   $$('#plan-tracks-on-hub .pricing-plan').forEach(card => card.addEventListener('click',()=>{ state.hubIndex=Number(card.dataset.hubIndex); state.incomplete=false; setCheckoutWarning(false); update(); if(isResponsive()) scrollToTarget('#pricing-summary'); }));
+  }
+
+  function selectPlan(index, shouldScroll=false){
+   state.planIndex=index;
+   state.trackIndex=0;
+   state.hubIndex=0;
+   state.incomplete = plans[index] && (plans[index].id === 'talentPro' || plans[index].id === 'musicPro');
+   setCheckoutWarning(false);
+   $('#plan-features').classList.add('hidden');
+   update();
+   if(shouldScroll && isResponsive()){
+    scrollToTarget('#pricing-summary','start');
+   }
+  }
+
+  function recapFor(plan){
+   const ic = { cloud:summaryIcon(svg.cloud), paper:summaryIcon(svg.paper), team:summaryIcon(svg.team), rocket:summaryIcon(svg.rocket), chart:summaryIcon(svg.chart), search:summaryIcon(svg.search) };
+   const free = `<div class="recap-feature">${ic.cloud}<div><p class="recap-feature-title">Your Cloud</p><ul class="recap-feature-list"><li>Music Auto-tagging</li><li>All Media (audio, video, pdf, image)</li><li>Smart inbox to receive music</li><li>Up to 1 GB and 25 tracks.</li></ul></div></div><div class="recap-feature">${ic.paper}<div><p class="recap-feature-title">Unlimited and beautiful sharing</p><p class="recap-feature-description">Send beautiful links that don’t expire.</p></div></div><div class="recap-feature">${ic.team}<div><p class="recap-feature-title">Teamwork from anywhere</p><p class="recap-feature-description">Access on desktop and mobile for up to 3 members.</p></div></div><div class="recap-feature disabled">${ic.rocket}<div><p class="recap-feature-title">Discovery Hubs access</p><p class="recap-feature-description">Publish your music to Bridge Discovery Hubs and get discovered.</p><span class="recap-feature-upgrade">Available on Pro plans</span></div></div>`;
+   const talent = `<div class="recap-feature"><div></div><div><p class="recap-feature-title">Upload music → Pitch → Track engagement</p><p class="recap-feature-description">A complete workflow to get heard by labels and supervisors.</p></div></div><div class="recap-feature">${ic.cloud}<div><p class="recap-feature-title">Your smart Cloud</p><ul class="recap-feature-list"><li>Full Auto-tagging</li><li>Up to 50 GB and 250 tracks.</li></ul></div></div><div class="recap-feature">${ic.paper}<div><p class="recap-feature-title">Beautiful advanced sharing</p><p class="recap-feature-description">Send beautiful links with advanced options.</p></div></div><div class="recap-feature">${ic.rocket}<div><p class="recap-feature-title">Submit your music to labels & supervisors</p><p class="recap-feature-description">Via Bridge Sync, Bridge Score and our label directory.</p></div></div><div class="recap-feature">${ic.chart}<div><p class="recap-feature-title">See what works</p><p class="recap-feature-description">Track activity from your shared projects and Hub submissions.</p></div></div><div class="recap-feature">${ic.team}<div><p class="recap-feature-title">A bigger team from anywhere</p><p class="recap-feature-description">Access on desktop and mobile for up to 5 members.</p></div></div>`;
+   const music = `<div class="recap-feature"><div></div><div><p class="recap-feature-title">Organize catalogs → Share → Grow opportunities</p><p class="recap-feature-description">Built for labels, publishers, managers and PR teams.</p></div></div><div class="recap-feature">${ic.cloud}<div><p class="recap-feature-title">Your smart Cloud</p><ul class="recap-feature-list"><li>Premium ingestion (DDEX / Disco…).</li><li>Full Auto-tagging</li><li>Smart AI Search</li><li>Starting at 1,000 tracks with media storage.</li></ul></div></div><div class="recap-feature">${ic.paper}<div><p class="recap-feature-title">Beautiful advanced sharing</p><p class="recap-feature-description">Send beautiful links with advanced options.</p></div></div><div class="recap-feature">${ic.rocket}<div><p class="recap-feature-title">Submit your music to labels & supervisors</p><p class="recap-feature-description">Via Bridge Sync, Bridge Score and our label directory.</p></div></div><div class="recap-feature">${ic.chart}<div><p class="recap-feature-title">See what works</p><p class="recap-feature-description">Track activity from your shared projects and Hub submissions.</p></div></div><div class="recap-feature">${ic.team}<div><p class="recap-feature-title">A bigger team from anywhere</p><p class="recap-feature-description">Access on desktop and mobile for up to 7 members.</p></div></div>`;
+   const supervisor = `<div class="recap-feature"><div></div><div><p class="recap-feature-title">Search catalogs → Discover → License faster</p><p class="recap-feature-description">Designed for supervisors and media buyers under deadline.</p></div></div><div class="recap-feature">${ic.search}<div><p class="recap-feature-title">Access Discovery Hubs to dive into premium catalogs</p><p class="recap-feature-description">From top labels, publishers and new talent with AI smart search.</p></div></div><div class="recap-feature">${ic.cloud}<div><p class="recap-feature-title">Your All Media workspace</p><ul class="recap-feature-list"><li>Premium ingestion (DDEX / Disco…).</li><li>Full Auto-tagging</li><li>Smart AI Search</li><li>${plans[state.planIndex].tracks[state.trackIndex]?.label || 'All Media workspace'}</li></ul></div></div><div class="recap-feature">${ic.paper}<div><p class="recap-feature-title">Beautiful advanced sharing</p><p class="recap-feature-description">Send beautiful links with advanced options and password.<br />Share briefs with your network.</p></div></div><div class="recap-feature">${ic.rocket}<div><p class="recap-feature-title">Free Access to Bridge Discovery Hubs</p><p class="recap-feature-description">Sync · Music for film, TV and ads.<br />Library · Production music catalogs.<br />Score · Composers & scoring projects.</p></div></div><div class="recap-feature">${ic.chart}<div><p class="recap-feature-title">Advanced analytics</p><p class="recap-feature-description">Track activity from your shared projects and pro hubs.</p></div></div><div class="recap-feature">${ic.team}<div><p class="recap-feature-title">A bigger team from anywhere</p><p class="recap-feature-description">Access on desktop and mobile for up to 7 members.</p></div></div>`;
+   const enterprise = `<div class="recap-feature">${ic.search}<div><p class="recap-feature-title">Talk to our Sales team</p><p class="recap-feature-description">Build a custom plan for large catalogs, advanced permissions, dedicated workflows and onboarding.</p></div></div><div class="recap-feature">${ic.team}<div><p class="recap-feature-title">Tailored for your organization</p><p class="recap-feature-description">We’ll help define the right workspace, users, storage, integrations and Discovery Hub access.</p></div></div>`;
+   return {free, talentPro:talent, musicPro:music, supervisorPro:supervisor, enterprise}[plan.id] || free;
+  }
+
+  function setCheckoutWarning(visible, message){
+   var warning = $('#checkout-warning');
+   if (!warning) return;
+   var text = warning.querySelector('span');
+   if (text && message) text.textContent = message;
+   warning.classList.toggle('visible', Boolean(visible));
+  }
+
+  function optionLabel(option){
+   if(!option) return '';
+   return option.label || '';
+  }
+
+  function optionDetail(option){
+   if(!option) return '';
+   return option.detail || option.summary || '';
+  }
+
+  function populateCheckoutSelects(plan){
+   const config = document.getElementById('checkout-config');
+   const workspaceField = document.getElementById('checkout-workspace-field');
+   const hubField = document.getElementById('checkout-hub-field');
+   const workspaceSelect = document.getElementById('checkout-workspace-select');
+   const hubSelect = document.getElementById('checkout-hub-select');
+   const workspaceDetail = document.getElementById('checkout-workspace-detail');
+   const hubDetail = document.getElementById('checkout-hub-detail');
+   if(!config || !workspaceField || !hubField || !workspaceSelect || !hubSelect) return;
+
+   const requiresHubChoice = plan.id === 'talentPro' || plan.id === 'musicPro';
+   const showWorkspace = plan.tracks && plan.tracks.length > 1 && plan.id !== 'free' && plan.id !== 'enterprise';
+   const showHub = requiresHubChoice;
+
+   workspaceField.classList.toggle('hidden', !showWorkspace);
+   hubField.classList.toggle('hidden', !showHub);
+
+   if(showWorkspace){
+    workspaceSelect.innerHTML = (plan.tracks || []).map((option, index) => {
+     const detail = optionDetail(option);
+     return `<option value="${index}">${optionLabel(option)}${detail ? ' — ' + detail : ''}</option>`;
+    }).join('');
+    workspaceSelect.value = String(state.trackIndex);
+   } else {
+    workspaceSelect.innerHTML = '';
+   }
+
+   if(showHub){
+    const placeholder = state.incomplete ? '<option value="" selected disabled>Choose promotion option</option>' : '';
+    hubSelect.innerHTML = placeholder + (plan.hubs || []).map((option, index) => `<option value="${index}">${optionLabel(option)}</option>`).join('');
+    if(!state.incomplete) hubSelect.value = String(state.hubIndex);
+   } else {
+    hubSelect.innerHTML = '';
+   }
+
+   const selectedTrack = (plan.tracks || [])[state.trackIndex] || (plan.tracks || [])[0];
+   const selectedHub = (plan.hubs || [])[state.hubIndex] || (plan.hubs || [])[0];
+
+   if(workspaceDetail) workspaceDetail.textContent = showWorkspace ? optionDetail(selectedTrack) : '';
+   if(hubDetail) hubDetail.textContent = showHub && !state.incomplete ? optionDetail(selectedHub) : '';
+
+   config.classList.toggle('hidden', !showWorkspace && !showHub);
+  }
+
+  function renderCheckoutCapabilities(plan){
+   const container = document.getElementById('checkout-capabilities');
+   if(!container) return;
+   container.innerHTML = (planCopy[plan.id].capabilities || []).slice(0,3).map(item => `
+    <div class="capability-block">
+     <p class="capability-title">${item[0]}</p>
+     <p class="capability-desc">${item[1]}</p>
+    </div>
+   `).join('');
+  }
+
+    function hubContext(kind){
+      if(kind === 'talent'){
+        return `<div class="hub-context"><span>Bridge Sync · Film & Ads</span><span>Bridge Score · Composers</span></div>`;
+      }
+      return `<div class="hub-context"><span>Bridge Sync · Film & Ads</span><span>Bridge Score · Composers</span><span>Bridge Library · Production music</span></div>`;
+    }
+
+    function cleanPlanValues(plan){
+      const selectedTrack = plan.tracks[state.trackIndex] || plan.tracks[0];
+      const selectedHub = plan.hubs[state.hubIndex] || plan.hubs[0];
+      const hubLabel = selectedHub ? selectedHub.label : '';
+
+      const musicCloudMap = {
+        'pro-1000': '250 GB • Up to 1,000 tracks (or more) (or more)',
+        'pro-2500': '1 TB • Up to 2,500 tracks (or more) (or more)',
+        'pro-5000': '2 TB • Up to 5,000 tracks (or more) (or more)',
+        'pro-unlimited': '5 TB • Unlimited tracks (or more) (or more)'
+      };
+
+      const supervisorCloudMap = {
+        'supervisor-1tb': '1 TB (or more)',
+        'supervisor-2tb': '2 TB (or more)',
+        'supervisor-3tb': '3 TB (or more)',
+        'supervisor-5tb': '5 TB (or more)'
+      };
+
+      const musicCloud = selectedTrack ? (musicCloudMap[selectedTrack.id] || '250 GB • Up to 1,000 tracks (or more)') : '250 GB • Up to 1,000 tracks (or more)';
+      const supervisorCloud = selectedTrack ? (supervisorCloudMap[selectedTrack.id] || '1 TB') : '1 TB';
+
+      const allHubs = `<div class="hub-context"><span>Bridge Sync · Film & Ads</span><span>Bridge Score · Composers</span><span>Bridge Library · Production music</span></div>`;
+      const talentHubs = `<div class="hub-context"><span>Bridge Sync · Film & Ads</span><span>Bridge Score · Composers</span></div>`;
+
+      const data = {
+        free: [
+          ['Cloud', ['All media (video, PDF and image)', '2 GB • Up to 25 tracks', 'Unlimited Projects']],
+          ['Sharing', ['Basic sharing', 'Smart Inbox to receive music', '~~Security features~~']],
+          ['Discoverability', ['Auto-tagging: basic', '~~Discovery Hubs included~~']],
+          ['Analytics', ['Basic analytics & reporting']],
+          ['Support & ingestion', ['Standard support', '~~DISCO, FTP, DDEX easy ingestion~~']]
+        ],
+        talentPro: [
+          ['Cloud', ['All media (video, PDF and image)', '50 GB • Up to 250 tracks', 'Unlimited Projects']],
+          ['Sharing', ['Advanced sharing', 'Smart Inbox to receive music', '~~Security features~~']],
+          ['Discoverability', ['Auto-tagging: advanced', `<strong>Discovery Hubs included</strong>${talentHubs}`, `Track slots on Discovery Hubs: ${state.incomplete ? 'choose an option below' : hubLabel}`]],
+          ['Analytics', ['Advanced analytics & reporting']],
+          ['Support & ingestion', ['Standard support', '~~DISCO, FTP, DDEX easy ingestion~~']]
+        ],
+        musicPro: [
+          ['Cloud', ['All media (video, PDF and image)', musicCloud, 'Unlimited Projects']],
+          ['Sharing', ['Advanced sharing', 'Security features', 'Smart Inbox to receive music']],
+          ['Discoverability', ['Auto-tagging: advanced', `<strong>Discovery Hubs included</strong>${allHubs}`, `Track slots on Discovery Hubs: ${state.incomplete ? 'choose an option below' : hubLabel}`]],
+          ['Analytics', ['Advanced analytics & reporting']],
+          ['Support & ingestion', ['Premium support', '<strong>DISCO, FTP, DDEX easy ingestion</strong>']]
+        ],
+        supervisorPro: [
+          ['Cloud', ['All media (video, PDF and image)', supervisorCloud, 'Unlimited Projects']],
+          ['Sharing', ['Advanced sharing', 'Security features', 'Smart Inbox to receive music']],
+          ['Discoverability', ['Auto-tagging: advanced', `<strong>Discovery Hubs included</strong>${allHubs}`, '<strong>Access premium catalogs on Discovery Hubs</strong>', 'Buyer Access Only']],
+          ['Analytics', ['Advanced analytics & reporting']],
+          ['Support & ingestion', ['Premium support', '<strong>DISCO, FTP, DDEX easy ingestion</strong>']]
+        ],
+        enterprise: [
+          ['Cloud', ['All media (video, PDF and image)', 'Custom cloud, tracks and storage', 'Unlimited Projects']],
+          ['Sharing', ['Advanced sharing', 'Security features', 'Smart Inbox to receive music']],
+          ['Discoverability', [`<strong>Discovery Hubs included</strong>${allHubs}`, 'Custom buyer / rights holder workflows']],
+          ['Analytics', ['Custom analytics & reporting']],
+          ['Support & ingestion', ['Dedicated support', '<strong>DISCO, FTP, DDEX easy ingestion</strong>']]
+        ]
+      };
+      return data[plan.id] || data.free;
+    }
+
+    function renderCleanPlanValueProps(plan){
+      const container = document.getElementById('plan-value-props');
+      if(!container) return;
+      container.innerHTML = cleanPlanValues(plan).map(([title, lines]) => {
+        const icon = title === 'Cloud' ? svg.cloud : title === 'Sharing' ? svg.paper : title === 'Discoverability' ? svg.rocket : title === 'Analytics' ? svg.chart : svg.team;
+        const lis = lines.map(line => {
+          const isOff = line.startsWith('~~') && line.endsWith('~~');
+          const clean = isOff ? line.slice(2, -2) : line;
+          return `<li${isOff ? ' class="is-not-included"' : ''}>${clean}</li>`;
+        }).join('');
+        return `<div class="plan-value-prop"><span class="plan-value-icon">${icon.replace('spec-icon','')}</span><div><p class="plan-value-label">${title}</p><ul class="plan-value-lines">${lis}</ul></div></div>`;
+      }).join('');
+    }
+
+    function triggerSelectMicroInteraction(selectId){
+      const node = document.getElementById(selectId);
+      if(!node) return;
+      node.classList.remove('changed');
+      void node.offsetWidth;
+      node.classList.add('changed');
+    }
+
+
+
+    function triggerRecapMicroInteraction(){
+      const nodes = document.querySelectorAll('#plan-value-props .plan-value-prop');
+      nodes.forEach(node => {
+        node.classList.remove('recap-change');
+        void node.offsetWidth;
+        node.classList.add('recap-change');
+      });
+    }
+
+    function triggerPriceMicroInteraction(){
+      ['total-price-value', 'total-price-suffix', 'total-price-yearly'].forEach(id => {
+        const node = document.getElementById(id);
+        if(!node) return;
+        node.classList.remove('price-change');
+        void node.offsetWidth;
+        node.classList.add('price-change');
+      });
+    }
+
+
+
+
+
+  function updateSummary(){
+   const plan = plans[state.planIndex]; const selectedTrack = plan.tracks[state.trackIndex] || plan.tracks[0]; const selectedHub = plan.hubs[state.hubIndex] || plan.hubs[0];
+   const color = plan.id==='free' ? '#252428' : (plan.color || '#252428'); const rgb = plan.id==='free' ? '37,36,40' : (plan.colorRgb || '37,36,40'); const badgeText = plan.id==='talentPro' ? '#252428' : (plan.isPro ? '#FFFFFF' : '#FFFFFF');
+   $('#pricing-summary').style.setProperty('--active-plan-color', color); $('#pricing-summary').style.setProperty('--active-plan-rgb', rgb); $('#pricing-summary').style.setProperty('--active-plan-text', badgeText);
+   $('#pricing-summary').classList.toggle('talent-summary', plan.id === 'talentPro'); $('#pricing-summary').setAttribute('data-active-plan', plan.id);
+   $('.selected-plan-title').innerHTML = `${plan.isPro ? diamondSvg() : ''}<span>${plan.name} plan</span>${plan.id === 'musicPro' ? '<span class="plan-badge-popular">Most Popular</span>' : ''}`; $('.selected-plan-subtitle').textContent = planCopy[plan.id].title; $('#selected-plan-loved').textContent = planCopy[plan.id].loved;
+   populateCheckoutSelects(plan);
+   renderCheckoutCapabilities(plan);
+      renderCleanPlanValueProps(plan);
+      triggerRecapMicroInteraction();
+      setTimeout(triggerRecapMicroInteraction, 28);
+   
+   
+   $('#selected-plan-details').innerHTML = recapFor(plan);
+   if(plan.id==='enterprise'){
+    document.getElementById('total-price-value').textContent='Custom';
+    document.getElementById('total-price-suffix').textContent='';
+    document.getElementById('total-price-yearly').textContent='Talk to Sales for tailored pricing';
+    $('#yearly-billing-section').classList.add('hidden');
+    $('#plan-submit').textContent='Contact Sales';
+    $('#plan-submit').style.color = '#FFFFFF';
+    $('#plan-submit').disabled = false; $('#plan-submit').setAttribute('aria-disabled','false'); $('#plan-submit').classList.remove('disabled');
+    return;
+   }
+   const total = price(selectedTrack) + (state.incomplete ? 0 : price(selectedHub)); const totalValue = document.getElementById('total-price-value'); const totalSuffix = document.getElementById('total-price-suffix'); const totalYearly = document.getElementById('total-price-yearly');
+   if(total){ totalValue.textContent = `${total}€`; totalSuffix.textContent = '/mo'; totalYearly.textContent = state.yearly ? `${total * 12}€/year billed yearly` : `${total * 12}€/year billed monthly`; triggerPriceMicroInteraction();
+triggerPremiumPrice(); } else { totalValue.textContent=''; totalSuffix.textContent=''; totalYearly.textContent=''; triggerPriceMicroInteraction();
+triggerPremiumPrice(); }
+   if(plan.id==='free') $('#yearly-billing-section').classList.add('hidden'); else $('#yearly-billing-section').classList.remove('hidden');
+   $('#plan-submit').textContent = ({free:'Get started free',talentPro:'Turn Pro',musicPro:'Scale your catalog',supervisorPro:'Find music faster',enterprise:'Book a meeting'})[plan.id] || 'Get started';
+   $('#plan-submit').style.color = plan.id === 'talentPro' ? '#252428' : '#FFFFFF'; $('#plan-submit').disabled = false; $('#plan-submit').setAttribute('aria-disabled', state.incomplete ? 'true' : 'false'); $('#plan-submit').classList.toggle('disabled', state.incomplete); $('#plan-submit').title = state.incomplete ? 'Choose your Discovery Hub option before checkout' : '';
+  }
+  function update(){ renderPlans(); renderOptions(); updateSummary(); }
+
+  document.getElementById('checkout-workspace-select').addEventListener('change', e => {
+   state.trackIndex = Number(e.target.value);
+   update();
+   triggerSelectMicroInteraction('checkout-workspace-select');
+  });
+  document.getElementById('checkout-hub-select').addEventListener('change', e => {
+   if(e.target.value === '') return;
+   state.hubIndex = Number(e.target.value);
+   state.incomplete = false;
+   setCheckoutWarning(false);
+   update();
+   triggerSelectMicroInteraction('checkout-hub-select');
+  });
+  $('#yearly-toggle').addEventListener('change', e => { state.yearly = e.target.checked; update(); });
+  $('#plan-submit').addEventListener('click', (event) => {
+   const plan = plans[state.planIndex];
+   if(state.incomplete){
+    event.preventDefault();
+    setCheckoutWarning(true, 'Please choose a Track slots on Discovery Hubs option before checkout, or select “I’ll add this option later”.');
+    const checkout = document.getElementById('pricing-summary');
+    if(checkout){
+     checkout.classList.remove('shake');
+     void checkout.offsetWidth;
+     checkout.classList.add('shake');
+    }
+    scrollToTarget('#checkout-warning', isResponsive()?'center':'center');
+    return;
+   }
+   if(plan.id==='enterprise'){
+    alert('Current behavior: opens https://www.bridge.audio/talk-to-us/ in a new tab.');
+    return;
+   }
+   alert(`Current behavior: redirects to billing/signup with:
+plan_id=${plan.id}
+tracks_option_id=${plan.tracks[state.trackIndex].id}
+hubs_option_id=${plan.hubs[state.hubIndex].id}`);
+  });
+  update();
+ 
+
+function getSelectedWorkspaceLine(plan) {
+ var selectedTrack = (plan.tracks || [])[state.trackIndex] || (plan.tracks || [])[0];
+ if (!selectedTrack) return '';
+ return selectedTrack.label;
+}
+
+function getSelectedHubLine(plan) {
+ var selectedHub = (plan.hubs || [])[state.hubIndex] || (plan.hubs || [])[0];
+ if (!selectedHub) return '';
+ if (state.incomplete && (plan.id === 'talentPro' || plan.id === 'musicPro')) return 'Track slots on Discovery Hubs: choose an option below';
+ if (selectedHub.ghost || selectedHub.id && selectedHub.id.indexOf('later') !== -1) return 'Track slots on Discovery Hubs: I’ll add this option later';
+ return selectedHub.label;
+}
+
+function buildPlanValuePropsV17(plan) {
+ var workspaceLine = getSelectedWorkspaceLine(plan);
+ var hubLine = getSelectedHubLine(plan);
+
+ var allHubs = '<span class="hub-help hub-help-wide" tabindex="0">What are the Discovery Hubs?<span class="hub-tooltip"><strong>Discovery Hubs</strong><br>Bridge Sync: music for film, TV and ads.<br>Bridge Score: composers and scoring projects.<br>Bridge Library: production music catalogs.</span></span>';
+ var talentHubs = '<span class="hub-help hub-help-wide" tabindex="0">What are the Discovery Hubs?<span class="hub-tooltip"><strong>Discovery Hubs</strong><br>Bridge Sync: music for film, TV and ads.<br>Bridge Score: composers and scoring projects.<br>Bridge Library: production music catalogs.</span></span>';
+
+ var cloudLines = {
+  free: ['All media (video, PDF and image)', '2 GB • Up to 25 tracks', 'Unlimited Projects'],
+  talentPro: ['All media (video, PDF and image)', '50 GB • Up to 250 tracks', 'Unlimited Projects'],
+  musicPro: ['All media (video, PDF and image)', workspaceLine, 'Unlimited Projects'],
+  supervisorPro: ['All media (video, PDF and image)', workspaceLine, 'Unlimited Projects'],
+  enterprise: ['All media (video, PDF and image)', 'Custom cloud, tracks and storage', 'Unlimited Projects']
+ };
+
+ var data = {
+  free: [
+   { icon: svg.cloud, label: 'Cloud', lines: cloudLines.free },
+   { icon: svg.paper, label: 'Sharing', lines: ['Basic sharing', { text:'Security features', disabled:true }, 'Smart Inbox to receive music'] },
+   { icon: svg.rocket, label: 'Discoverability', lines: ['Auto-tagging: basic', { text:'Discovery Hubs included', disabled:true }] },
+   { icon: svg.chart, label: 'Basic Analytics', lines: [] },
+   { icon: svg.bolt, label: 'Standard Support', lines: [] }
+  ],
+  talentPro: [
+   { icon: svg.cloud, label: 'Cloud', lines: cloudLines.talentPro },
+   { icon: svg.paper, label: 'Sharing', lines: ['Advanced sharing', 'Smart Inbox to receive music', { text:'Security features', disabled:true }] },
+   { icon: svg.rocket, label: 'Discoverability', lines: ['Auto-tagging: advanced', hubLine, allHubs] },
+   { icon: svg.chart, label: 'Advanced analytics & reporting', lines: [] },
+   { icon: svg.bolt, label: 'Standard Support', lines: [] }
+  ],
+  musicPro: [
+   { icon: svg.cloud, label: 'Cloud', lines: cloudLines.musicPro },
+   { icon: svg.paper, label: 'Sharing', lines: ['Advanced sharing', 'Security features', 'Smart Inbox to receive music'] },
+   { icon: svg.rocket, label: 'Discoverability', lines: ['Auto-tagging: advanced', hubLine, allHubs] },
+   { icon: svg.chart, label: 'Advanced analytics & reporting', lines: [] },
+   { icon: svg.bolt, label: 'Support & ingestion', lines: ['Premium support', '<strong>DISCO, FTP, DDEX easy ingestion</strong>'] }
+  ],
+  supervisorPro: [
+   { icon: svg.cloud, label: 'Cloud', lines: cloudLines.supervisorPro },
+   { icon: svg.paper, label: 'Sharing', lines: ['Advanced sharing', 'Security features', 'Smart Inbox to receive music'] },
+   { icon: svg.rocket, label: 'Discoverability', lines: ['Auto-tagging: advanced', 'Access premium catalogs on Discovery Hubs', 'Buyer Access Only', allHubs] },
+   { icon: svg.chart, label: 'Advanced analytics & reporting', lines: [] },
+   { icon: svg.bolt, label: 'Support & ingestion', lines: ['Premium support', '<strong>DISCO, FTP, DDEX easy ingestion</strong>'] }
+  ],
+  enterprise: [
+   { icon: svg.cloud, label: 'Cloud', lines: cloudLines.enterprise },
+   { icon: svg.paper, label: 'Sharing', lines: ['Advanced sharing', 'Security features', 'Smart Inbox to receive music'] },
+   { icon: svg.rocket, label: 'Discoverability', lines: ['Custom Discovery Hubs setup', 'Custom buyer / rights holder workflows', allHubs] },
+   { icon: svg.chart, label: 'Analytics', lines: ['Custom analytics & reporting'] },
+   { icon: svg.bolt, label: 'Support & ingestion', lines: ['Dedicated support', '<strong>DISCO, FTP, DDEX easy ingestion</strong>'] }
+  ]
+ };
+ return data[plan.id] || data.free;
+}
+
+function renderPlanValuePropsV17() {
+ var container = document.getElementById('plan-value-props');
+ if (!container || typeof plans === 'undefined' || typeof state === 'undefined') return;
+
+ var plan = plans[state.planIndex];
+ var items = buildPlanValuePropsV17(plan);
+
+ container.innerHTML = items.map(function(item) {
+  return `
+   <div class="plan-value-prop">
+    <span class="plan-value-icon">${item.icon.replace('spec-icon','')}</span>
+    <div>
+     <p class="plan-value-label">${item.label}</p>
+     ${item.lines && item.lines.length ? `<ul class="plan-value-lines">
+      ${item.lines.map(function(line) { var isObj = typeof line === 'object'; var text = isObj ? line.text : line; var cls = isObj && line.disabled ? ' class="is-not-included"' : ''; return `<li${cls}>${text}</li>`; }).join('')}
+     </ul>` : ''}
+    </div>
+   </div>
+  `;
+ }).join('');
+
+ var summary = document.getElementById('pricing-summary');
+ var config = summary ? summary.querySelector('.checkout-config') : null;
+
+ if (summary && config) {
+  if (container.nextElementSibling !== config) summary.insertBefore(container, config);
+ }
+}
+
+
+if (typeof update === 'function' && !window.__bridgeV17ValuePropsPatched) {
+ window.__bridgeV17ValuePropsPatched = true;
+ var bridgeOriginalUpdateV17 = update;
+ update = function() {
+  bridgeOriginalUpdateV17();
+  renderPlanValuePropsV17();
+triggerLineUpdates();
+ };
+}
+
+document.addEventListener('DOMContentLoaded', renderPlanValuePropsV17);
+setTimeout(renderPlanValuePropsV17, 0);
+
+
+function triggerLineUpdates(){
+  document.querySelectorAll('.plan-value-lines li').forEach((el, index) => {
+    el.classList.remove('line-updated');
+    void el.offsetWidth;
+    setTimeout(() => {
+      el.classList.add('line-updated');
+    }, Math.min(index * 12, 90));
+  });
+}
+
+function triggerPremiumPrice(){
+  ['total-price-value','total-price-suffix','total-price-yearly'].forEach(id => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.classList.remove('price-premium');
+    void el.offsetWidth;
+    el.classList.add('price-premium');
+  });
+}
+
+</script>
+
+<section class="pricing-social-proof ecosystem-proof">
+  <div class="ecosystem-proof-inner">
+    <div class="ecosystem-proof-header">
+      <p class="ecosystem-proof-kicker">BRIDGE.AUDIO ECOSYSTEM</p>
+      <h3>Bridge the gap within the music industry and beyond.</h3>
+    </div>
+
+    <div class="ecosystem-proof-stats">
+      <div class="ecosystem-stat">
+        <div class="ecosystem-stat-number">50K+</div>
+        <div class="ecosystem-stat-title">Creators & artists</div>
+        <div class="ecosystem-stat-copy">Artists, composers, voice-over and independent creative teams.</div>
+      </div>
+
+      <div class="ecosystem-stat">
+        <div class="ecosystem-stat-number">5K+</div>
+        <div class="ecosystem-stat-title">Music professionals</div>
+        <div class="ecosystem-stat-copy">Labels, publishers, managers, brokers and rights holders.</div>
+        <div class="ecosystem-wordmarks">
+          <span>SONY MUSIC</span>
+          <span>WAGRAM</span>
+          <span>WISE MUSIC GROUP</span>
+          <span>BUDDE MUSIC</span>
+          <span>ALTER K</span>
+          <span>VELVETICA</span>
+          <span>TÔT OU TARD</span>
+        </div>
+      </div>
+
+      <div class="ecosystem-stat">
+        <div class="ecosystem-stat-number">600+</div>
+        <div class="ecosystem-stat-title">Buyers</div>
+        <div class="ecosystem-stat-copy">Music supervisors, ad agencies, brands and media teams.</div>
+        <div class="ecosystem-wordmarks">
+          <span>L’ORÉAL</span>
+          <span>BBDO</span>
+          <span>CHANEL</span>
+          <span>TBWA</span>
+          <span>ASM</span>
+          <span>HAVAS</span>
+          <span>CANAL+</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>
